@@ -1,0 +1,28 @@
+{
+  "name": "witness-for-ring",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Witness for Ring: virtual sensors you teach, evidence you can trust, privacy you can see.",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "build:verify": "npm run build -w witness-verify",
+    "dev": "npm run build:verify && concurrently -n server,web -c blue,magenta \"npm run dev -w @witness/server\" \"npm run dev -w @witness/web\"",
+    "build": "npm run build -w witness-verify && npm run build -w @witness/server && npm run build -w @witness/web",
+    "start": "npm run start -w @witness/server",
+    "test": "npm run build:verify && npm test -w witness-verify && npm test -w @witness/server",
+    "typecheck": "npm run build:verify && npm run typecheck -w @witness/server && npm run typecheck -w @witness/web"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  }
+}

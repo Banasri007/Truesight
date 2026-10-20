@@ -1,0 +1,43 @@
+{
+  "name": "witness-verify",
+  "version": "0.1.0",
+  "description": "Verify tamper-evident, privacy-redacted evidence bundles and hash-chained ledgers produced by Witness for Ring. Runs in Node and in the browser.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "witness-verify": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "ring",
+    "evidence",
+    "provenance",
+    "tamper-evident",
+    "hash-chain",
+    "es256",
+    "redaction",
+    "privacy"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "tsx --test \"test/**/*.test.ts\""
+  },
+  "dependencies": {
+    "fast-png": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0"
+  }
+}
