@@ -12,6 +12,7 @@ interface FeedItem {
   at: string;
   text: string;
   kind: "alert" | "resolved" | "ring" | "info" | "error";
+  deviceId?: string | null;
 }
 
 const FEED_TONE: Record<FeedItem["kind"], string> = {
@@ -264,7 +265,10 @@ export function Dashboard({ status }: { status: Status | null }) {
               <motion.li key={item.id} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, ease: EASE }} className="flex gap-3 px-5 py-3.5">
                 <span className={`mt-1.5 size-1.5 shrink-0 rounded-full ${FEED_TONE[item.kind]}`} />
                 <div className="min-w-0">
-                  <p className="text-[13px] leading-snug text-mist">{item.text}</p>
+                  <p className="text-[13px] leading-snug text-mist [overflow-wrap:anywhere]">
+                    {item.text}
+                    {item.kind === "ring" && <span className="text-fog"> · {item.deviceId ? deviceName(item.deviceId) : "account"}</span>}
+                  </p>
                   <p className="mt-1 font-mono text-[10.5px] text-fog">{timeAgo(item.at)}</p>
                 </div>
               </motion.li>
@@ -281,6 +285,7 @@ function ringItem(e: RingEventRecord): FeedItem {
     id: e.id,
     at: e.receivedAt,
     kind: "ring",
-    text: `${e.type.replace(/_/g, " ")}${e.subType ? ` (${e.subType})` : ""} · ${e.deviceId ?? "account"} · ledger #${e.ledgerSeq}`,
+    deviceId: e.deviceId,
+    text: `${e.type.replace(/^history\./, "").replace(/_/g, " ")}${e.subType ? ` (${e.subType})` : ""}${e.type.startsWith("history.") ? " · from event history" : ""} · ledger #${e.ledgerSeq}`,
   };
 }

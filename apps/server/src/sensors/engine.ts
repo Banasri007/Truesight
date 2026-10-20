@@ -157,11 +157,11 @@ export class SensorEngine {
   // ---- Triggers --------------------------------------------------------------------------
 
   /** motion_detected / button_press on a camera. */
-  onCameraActivity(deviceId: string, type: "motion_detected" | "button_press"): void {
+  onCameraActivity(deviceId: string, type: "motion_detected" | "button_press", atTimestamp?: number): void {
     const trigger: Trigger = type === "button_press" ? "button_press" : "motion";
     for (const sensor of this.list()) {
       if (sensor.enabled && sensor.onMotion && sensor.deviceId === deviceId) {
-        this.later(this.deps.eventSnapshotDelayMs, () => void this.check(sensor.id, trigger));
+        this.later(this.deps.eventSnapshotDelayMs, () => void this.check(sensor.id, trigger, atTimestamp));
       }
     }
   }
@@ -196,11 +196,11 @@ export class SensorEngine {
   }
 
   /** Run one check. Overlapping requests for the same sensor share the in-flight run. */
-  check(id: string, trigger: Trigger): Promise<CheckResult | null> {
+  check(id: string, trigger: Trigger, atTimestamp?: number): Promise<CheckResult | null> {
     if (this.stopped) return Promise.resolve(null);
     const running = this.inFlight.get(id);
     if (running) return running;
-    const run = this.runCheck(id, trigger)
+    const run = this.runCheck(id, trigger, atTimestamp)
       .catch((error: unknown) => {
         const sensor = this.get(id);
         const message = error instanceof Error ? error.message : String(error);
@@ -218,14 +218,14 @@ export class SensorEngine {
     return run;
   }
 
-  private async runCheck(id: string, trigger: Trigger): Promise<CheckResult | null> {
+  private async runCheck(id: string, trigger: Trigger, atTimestamp?: number): Promise<CheckResult | null> {
     const sensor = this.get(id);
     if (!sensor || !sensor.enabled) return null;
     this.lastAttempt.set(id, Date.now());
     const { ring, vision, faces, ledger, state, sse } = this.deps;
 
     const eventDriven = trigger === "motion" || trigger === "button_press" || trigger === "corroboration";
-    const frame = await ring.getSnapshot(sensor.deviceId, eventDriven ? { withinMs: 120_000 } : {});
+    const frame = await ring.getSnapshot(sensor.deviceId, atTimestamp ? { atTimestamp } : eventDriven ? { withinMs: 120_000 } : {});
     const perception = await preparePerception(frame, sensor.region, state.data.privacyZones[sensor.deviceId] ?? [], faces);
     const answer = await vision.ask({
       image: perception.aiView,

@@ -9,6 +9,7 @@ import { EvidenceService } from "./proof/evidence.js";
 import { DynamoLedgerStore, Ledger, LocalLedgerStore } from "./proof/ledger.js";
 import { KmsSigner, LocalSigner } from "./proof/signer.js";
 import { RingApiClient } from "./ring/api-client.js";
+import { HistoryPoller } from "./ring/history-poller.js";
 import { RingAuth } from "./ring/oauth.js";
 import { Simulator, type SimulatorHooks } from "./ring/simulator/simulator.js";
 import type { RingClient } from "./ring/types.js";
@@ -24,6 +25,7 @@ export interface BootstrapOptions {
   faces?: FaceDetector;
   eventSnapshotDelayMs?: number;
   confirmDelayMs?: number;
+  historyPollMs?: number;
 }
 
 /** Wire every component from configuration. Shared by the server entry point and the tests. */
@@ -73,7 +75,10 @@ export async function bootstrap(cfg: Config, options: BootstrapOptions = {}) {
     confirmDelayMs: options.confirmDelayMs ?? 4000,
   });
 
-  const ctx: AppContext = { cfg, state, ledger, signer, blobs, ring, simulator, auth, engine, evidence, sse, notifier, faces, vision };
+  const pollHistory = cfg.RING_MODE === "api" && (cfg.RING_POLL_HISTORY === "on" || (cfg.RING_POLL_HISTORY === "auto" && auth?.method === "playground"));
+  const historyPoller = pollHistory ? new HistoryPoller({ ring, state, ledger, sse, engine, intervalMs: options.historyPollMs ?? 10_000 }) : null;
+
+  const ctx: AppContext = { cfg, state, ledger, signer, blobs, ring, simulator, auth, historyPoller, engine, evidence, sse, notifier, faces, vision };
   return {
     ctx,
     /** The simulator posts webhooks to this server; call once the real port is known. */

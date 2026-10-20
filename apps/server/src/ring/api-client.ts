@@ -11,6 +11,9 @@ interface JsonApiResource {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const NO_MEDIA_HELP =
+  "Ring only returns images the camera already recorded, after you linked TrueSight. Trigger motion in front of the camera or open Live View in the Ring app, then try again.";
+
 const SENSOR_STATUS_KEYS = [
   "contact_detection",
   "flood_detection",
@@ -28,6 +31,26 @@ const SENSOR_STATUS_KEYS = [
 export class RingApiClient implements RingClient {
   readonly mode = "api" as const;
   private deviceCache: { at: number; devices: RingDevice[] } | null = null;
+  /**
+   * Learned lower bound for media requests. Ring only serves media after the customer's
+   * consent date (not exposed by the API); a start time Ring accepted stays valid forever.
+   */
+  private earliestStart = 0;
+  /** Local clock minus Ring's clock (from response Date headers). Ring rejects timestamps in its future. */
+  private clockSkewMs = 0;
+
+  private trackClock(response: Response): void {
+    const server = Date.parse(response.headers.get("Date") ?? "");
+    if (!Number.isFinite(server)) return;
+    const skew = Date.now() - server;
+    // Date headers have 1s resolution; ignore jitter, follow real drift.
+    if (Math.abs(skew - this.clockSkewMs) > 1500) this.clockSkewMs = skew;
+  }
+
+  /** "Now" on Ring's clock, minus a small margin so a timestamp is never in Ring's future. */
+  private ringNow(): number {
+    return Date.now() - Math.max(0, this.clockSkewMs) - 2000;
+  }
 
   constructor(
     private readonly cfg: Config,
@@ -53,6 +76,7 @@ export class RingApiClient implements RingClient {
         },
         ...(options.json === undefined ? {} : { body: JSON.stringify(options.json) }),
       });
+      this.trackClock(response);
       if (response.status === 401 && attempt === 0) {
         await this.auth.forceRefresh();
         continue;
@@ -131,12 +155,15 @@ export class RingApiClient implements RingClient {
   }
 
   async getSnapshot(deviceId: string, options: { atTimestamp?: number; withinMs?: number } = {}): Promise<Frame> {
-    const now = Date.now();
-    const body = options.atTimestamp
-      ? { type: "at_timestamp", timestamp: options.atTimestamp }
-      : { type: "latest_in_range", start_timestamp: now - Math.min(options.withinMs ?? 24 * 3_600_000 - 60_000, 24 * 3_600_000 - 60_000), end_timestamp: now };
+    const now = this.ringNow();
+    const maxWindow = 24 * 3_600_000 - 60_000; // latest_in_range windows cannot exceed 24h
+    let start = Math.max(now - Math.min(options.withinMs ?? maxWindow, maxWindow), this.earliestStart);
+    let shrunk = false;
 
     for (let attempt = 0; ; attempt++) {
+      const body = options.atTimestamp
+        ? { type: "at_timestamp", timestamp: options.atTimestamp }
+        : { type: "latest_in_range", start_timestamp: start }; // end defaults to Ring's own "now"
       const response = await this.request("POST", `/v1/devices/${encodeURIComponent(deviceId)}/media/image/download`, {
         json: body,
         redirect: "manual",
@@ -147,12 +174,28 @@ export class RingApiClient implements RingClient {
         await sleep(4000);
         continue;
       }
+      if (response.status === 403 && !options.atTimestamp) {
+        const text = await response.text();
+        if (text.includes("TIME_RANGE_NOT_AUTHORIZED") && now - start > 60_000 && attempt < 6) {
+          start = now - Math.max(60_000, Math.floor((now - start) / 8)); // shrink the window and retry
+          shrunk = true;
+          continue;
+        }
+        if (text.includes("TIME_RANGE_NOT_AUTHORIZED")) {
+          throw new RingApiError(403, "No media since linking", NO_MEDIA_HELP, "TIME_RANGE_NOT_AUTHORIZED");
+        }
+        await this.fail(new Response(text, { status: 403 }), "Snapshot download failed");
+      }
+      // Ring accepted this range, so it starts after consent: remember it for every later request.
+      if (shrunk) this.earliestStart = Math.max(this.earliestStart, start);
+      if (response.status === 416) throw new RingApiError(416, "No recording in range", NO_MEDIA_HELP, "MEDIA_NOT_FOUND");
+      if (response.status === 503) throw new RingApiError(503, "Device offline", "Ring reports this device as offline, so it has no new images.");
       let media = response;
       if (response.status >= 300 && response.status < 400) {
         const location = response.headers.get("Location");
         if (!location) await this.fail(response, "Snapshot redirect without Location");
         // Pre-signed, time-limited URL: no Authorization header.
-        media = await fetch(location!);
+        media = await fetch(new URL(location!, this.cfg.RING_API_BASE));
       }
       if (!media.ok) await this.fail(media, "Snapshot download failed");
       const contentType = media.headers.get("Content-Type") ?? "image/jpeg";

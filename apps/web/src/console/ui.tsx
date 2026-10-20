@@ -99,6 +99,54 @@ export function ErrorText({ error }: { error: string | null }) {
 }
 
 /**
+ * Load a camera snapshot as a blob URL, keeping the server's reason when it
+ * fails (for example: Ring has no recording yet), instead of a broken <img>.
+ */
+export function useSnapshot(deviceId: string | null | undefined, nonce: number) {
+  const [state, setState] = useState<{ url: string | null; error: string | null; loading: boolean }>({ url: null, error: null, loading: true });
+  useEffect(() => {
+    if (!deviceId) return;
+    let url: string | null = null;
+    let cancelled = false;
+    setState({ url: null, error: null, loading: true });
+    fetch(`/api/devices/${encodeURIComponent(deviceId)}/snapshot?t=${nonce}`, { credentials: "same-origin" })
+      .then(async (response) => {
+        if (!response.ok) {
+          const body = (await response.json().catch(() => null)) as { error?: string } | null;
+          throw new Error(body?.error ?? `Snapshot failed (${response.status})`);
+        }
+        url = URL.createObjectURL(await response.blob());
+        if (!cancelled) setState({ url, error: null, loading: false });
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) setState({ url: null, error: error instanceof Error ? error.message : String(error), loading: false });
+      });
+    return () => {
+      cancelled = true;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [deviceId, nonce]);
+  return state;
+}
+
+/** Placeholder shown while a snapshot loads, or with the reason it is unavailable. */
+export function SnapshotUnavailable({ error, loading, compact = false }: { error: string | null; loading: boolean; compact?: boolean }) {
+  const message = error?.replace(/^Ring API \d+(\s+[A-Z_]+)?:\s*/, "");
+  return (
+    <div className={`grid aspect-video w-full place-items-center bg-ink-850 ${compact ? "p-4" : "rounded-xl border border-line p-8"}`}>
+      {loading ? (
+        <span className="eyebrow">Loading snapshot…</span>
+      ) : (
+        <div className="max-w-md text-center">
+          <AlertTriangle className="mx-auto mb-3 size-5 text-amber" />
+          <p className={`${compact ? "text-[12px]" : "text-[13.5px]"} leading-relaxed text-mist`}>{message ?? "Snapshot unavailable."}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
  * Draw rectangles on a camera frame. Coordinates are normalized (0..1), the
  * same convention Ring uses for motion and privacy zones.
  */

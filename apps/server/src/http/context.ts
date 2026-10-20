@@ -5,6 +5,7 @@ import type { FaceDetector } from "../privacy/faces.js";
 import type { EvidenceService } from "../proof/evidence.js";
 import type { Ledger } from "../proof/ledger.js";
 import type { Signer } from "../proof/signer.js";
+import type { HistoryPoller } from "../ring/history-poller.js";
 import type { RingAuth } from "../ring/oauth.js";
 import type { Simulator } from "../ring/simulator/simulator.js";
 import type { RingClient } from "../ring/types.js";
@@ -22,6 +23,8 @@ export interface AppContext {
   ring: RingClient;
   simulator: Simulator | null;
   auth: RingAuth | null;
+  /** Event-history polling (webhook substitute), when enabled. */
+  historyPoller: HistoryPoller | null;
   engine: SensorEngine;
   evidence: EvidenceService;
   sse: SseHub;

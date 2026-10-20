@@ -22,7 +22,7 @@ function summary(entry: LedgerEntry): string {
     case "sensor.state_changed":
       return `${String(d.sensorName)}: ${String(d.from)} → ${String(d.to)} · ${Math.round(Number(d.confidence) * 100)}% · ${String(d.trigger)}`;
     case "ring.event":
-      return `${String(d.type)}${d.subType ? ` (${String(d.subType)})` : ""} · ${String(d.deviceId ?? "account")} · HMAC verified`;
+      return `${String(d.type)}${d.subType ? ` (${String(d.subType)})` : ""} · ${String(d.deviceId ?? "account").slice(0, 28)} · ${d.source === "event-history" ? "polled from event history" : "webhook, HMAC verified"}`;
     case "evidence.captured":
       return `${String(d.evidenceId)} · original ${short(String(d.originalSha256), 12)}`;
     case "evidence.redacted":

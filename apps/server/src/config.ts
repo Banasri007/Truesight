@@ -32,6 +32,8 @@ const EnvSchema = z
     // or a refresh token from a completed link (needs client id/secret to refresh).
     RING_ACCESS_TOKEN: optional,
     RING_REFRESH_TOKEN: optional,
+    // Poll camera event history as a webhook substitute. auto = only with a Playground token.
+    RING_POLL_HISTORY: z.enum(["auto", "on", "off"]).default("auto"),
     // Partner-initiated authorize request only; "ava.v1:read" is the only supported value.
     // Token responses report it back as scope "ava", which is expected.
     RING_SCOPE: z.string().default("ava.v1:read"),

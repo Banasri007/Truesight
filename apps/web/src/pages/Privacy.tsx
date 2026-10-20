@@ -3,7 +3,7 @@ import { Eraser, Save, Undo2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { LedgerEntry } from "truesight-verify";
 import { errorMessage, get, put } from "../api";
-import { EASE, ErrorText, PageHeader, RegionCanvas, Stat, short, timeAgo, useTicker } from "../console/ui";
+import { EASE, ErrorText, PageHeader, RegionCanvas, SnapshotUnavailable, Stat, short, timeAgo, useSnapshot, useTicker } from "../console/ui";
 import { useEvent } from "../events";
 import type { Device, NormRect, PrivacyReceipt, Status } from "../types";
 
@@ -18,6 +18,7 @@ export function PrivacyPage({ status }: { status: Status | null }) {
   const [receipts, setReceipts] = useState<PrivacyReceipt[]>([]);
   const [access, setAccess] = useState<LedgerEntry[]>([]);
   const [nonce] = useState(() => Date.now());
+  const snapshot = useSnapshot(deviceId || null, nonce);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -147,9 +148,10 @@ export function PrivacyPage({ status }: { status: Status | null }) {
                 </option>
               ))}
             </select>
-            {deviceId && (
+            {deviceId && !snapshot.url && <SnapshotUnavailable error={snapshot.error} loading={snapshot.loading} />}
+            {deviceId && snapshot.url && (
               <RegionCanvas
-                src={`/api/devices/${deviceId}/snapshot?t=${nonce}`}
+                src={snapshot.url}
                 rects={zones}
                 multiple
                 color="#ffffff"

@@ -14,7 +14,8 @@ const server = app.listen(cfg.PORT, () => {
   const lines = [
     `${APP_NAME} v${APP_VERSION}`,
     `  Server           http://localhost:${port}${process.env.npm_lifecycle_event === "dev" ? "  (dashboard: http://localhost:5173)" : ""}`,
-    `  Ring             ${cfg.RING_MODE === "simulator" ? "simulator (no Ring account needed)" : `Ring API ${cfg.RING_API_BASE}`}`,
+    `  Ring             ${cfg.RING_MODE === "simulator" ? "simulator (no Ring account needed)" : `Ring API ${cfg.RING_API_BASE} (${ctx.auth?.method ?? "none"})`}`,
+    ...(ctx.historyPoller ? ["  Events           polling camera event history every 10s (no webhooks with this token)"] : []),
     `  Webhook URL      ${cfg.PUBLIC_BASE_URL}/webhooks/ring`,
     `  Vision           ${ctx.vision.name} (${ctx.vision.model})`,
     `  Faces            ${ctx.faces.name}`,
@@ -27,6 +28,7 @@ const server = app.listen(cfg.PORT, () => {
 });
 
 ctx.engine.start();
+ctx.historyPoller?.start();
 const purge = setInterval(() => {
   ctx.evidence.purgeExpired().catch((error: unknown) => console.error("[purge]", error));
 }, 3_600_000);
@@ -34,6 +36,7 @@ purge.unref();
 
 async function shutdown(signal: string) {
   console.log(`\n${signal} received, shutting down...`);
+  ctx.historyPoller?.stop();
   await ctx.engine.stop();
   ctx.sse.close();
   await ctx.state.flush();

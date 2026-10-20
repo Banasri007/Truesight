@@ -16,6 +16,11 @@ const escapeHtml = (s: string) => s.replace(/[<>&"']/g, (c) => ({ "<": "&lt;", "
 export function ringRoutes(ctx: AppContext): Router {
   const router = Router();
 
+  // Reachability check (the Developer Console and uptime probes use GET): Ring expects a 200.
+  router.get("/webhooks/ring", (_req, res) => {
+    res.json({ ok: true, accepts: "POST application/json with X-Signature: sha256=<hex>" });
+  });
+
   // Webhook URL. Raw body is required for the HMAC check.
   router.post("/webhooks/ring", express.raw({ type: "*/*", limit: "1mb" }), (req, res) => {
     const raw = Buffer.isBuffer(req.body) ? req.body : Buffer.alloc(0);

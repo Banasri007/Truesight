@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { BellRing, Check, FlaskConical, RefreshCw, X } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { errorMessage, get, post, put } from "../api";
-import { EASE, ErrorText, PageHeader, RegionCanvas } from "../console/ui";
+import { EASE, ErrorText, PageHeader, RegionCanvas, SnapshotUnavailable, useSnapshot } from "../console/ui";
 import { navigate } from "../lib/route";
 import type { ChimeSlot, Device, NormRect, Sensor, SensorDefinition } from "../types";
 
@@ -86,6 +86,7 @@ export function Teach({ editId }: { editId: string | null }) {
   const chimes = devices.filter((d) => d.kind === "chime");
   const sensors = devices.filter((d) => d.kind === "sensor");
   const camera = devices.find((d) => d.id === def.deviceId);
+  const snapshot = useSnapshot(camera?.id, nonce);
   const chimeId = def.actions.chime?.deviceId ?? "";
 
   useEffect(() => {
@@ -158,7 +159,7 @@ export function Teach({ editId }: { editId: string | null }) {
                 }}
                 className={`group overflow-hidden rounded-xl border text-left transition duration-300 ${selected ? "border-signal/60 shadow-[0_0_0_4px_rgb(143_216_255/0.1)]" : "border-line hover:border-line-strong"}`}
               >
-                <img src={`/api/devices/${cam.id}/snapshot?t=${nonce}`} alt={cam.name} className="aspect-video w-full object-cover transition duration-700 group-hover:scale-[1.02]" />
+                <CameraThumb deviceId={cam.id} name={cam.name} nonce={nonce} />
                 <div className="flex items-center justify-between px-4 py-3">
                   <span className="text-[14px] font-medium">{cam.name}</span>
                   {cam.online === false ? <span className="font-mono text-[10.5px] text-ember">offline</span> : selected && <Check className="size-4 text-signal" />}
@@ -178,16 +179,20 @@ export function Teach({ editId }: { editId: string | null }) {
             </button>
           </div>
           <div className="max-w-[920px]">
-            <RegionCanvas
-              src={`/api/devices/${camera.id}/snapshot?t=${nonce}`}
-              rects={regionDrawn ? [def.region] : []}
-              zones={camera.privacyZones}
-              onChange={(rects) => {
-                set("region", roundRect(rects[0]!));
-                setRegionDrawn(true);
-              }}
-              hint={regionDrawn ? `region · ${Math.round(def.region.w * def.region.h * 1000) / 10}% of frame · drag to redraw` : "drag to draw the region"}
-            />
+            {snapshot.url ? (
+              <RegionCanvas
+                src={snapshot.url}
+                rects={regionDrawn ? [def.region] : []}
+                zones={camera.privacyZones}
+                onChange={(rects) => {
+                  set("region", roundRect(rects[0]!));
+                  setRegionDrawn(true);
+                }}
+                hint={regionDrawn ? `region · ${Math.round(def.region.w * def.region.h * 1000) / 10}% of frame · drag to redraw` : "drag to draw the region"}
+              />
+            ) : (
+              <SnapshotUnavailable error={snapshot.error} loading={snapshot.loading} />
+            )}
           </div>
         </Step>
       )}
@@ -359,6 +364,15 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
       </button>
       {label}
     </label>
+  );
+}
+
+function CameraThumb({ deviceId, name, nonce }: { deviceId: string; name: string; nonce: number }) {
+  const snap = useSnapshot(deviceId, nonce);
+  return snap.url ? (
+    <img src={snap.url} alt={name} className="aspect-video w-full object-cover transition duration-700 group-hover:scale-[1.02]" />
+  ) : (
+    <SnapshotUnavailable error={snap.error} loading={snap.loading} compact />
   );
 }
 
