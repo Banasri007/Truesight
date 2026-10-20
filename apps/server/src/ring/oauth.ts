@@ -49,19 +49,44 @@ export class RingAuth {
   ) {}
 
   static async open(cfg: Config): Promise<RingAuth> {
-    return new RingAuth(cfg, await JsonFile.open(join(cfg.dataDir, "ring-tokens.json"), () => ({ tokens: [] })));
+    const file = await JsonFile.open<{ tokens: TokenRecord[] }>(join(cfg.dataDir, "ring-tokens.json"), () => ({ tokens: [] }));
+    // RING_REFRESH_TOKEN seeds a linked record once; after that the rotated token in the file wins.
+    if (cfg.RING_REFRESH_TOKEN && !file.data.tokens.some((t) => t.status === "linked")) {
+      file.data.tokens.push({
+        id: randomUUID(),
+        accessToken: "",
+        refreshToken: cfg.RING_REFRESH_TOKEN,
+        expiresAt: 0,
+        scope: null,
+        accountId: null,
+        status: "linked",
+        createdAt: new Date().toISOString(),
+        linkedAt: new Date().toISOString(),
+      });
+      await file.flush();
+    }
+    return new RingAuth(cfg, file);
   }
 
   private get accountIdentifier(): string {
     return `owner@${new URL(this.cfg.PUBLIC_BASE_URL).hostname}`;
   }
 
+  /** How TrueSight is authorized: AppStore link, a pasted refresh token, or a Playground token. */
+  get method(): "playground" | "refresh-token" | "account-link" | "none" {
+    if (this.cfg.RING_ACCESS_TOKEN) return "playground";
+    if (!this.linkedRecord()) return "none";
+    return this.cfg.RING_REFRESH_TOKEN ? "refresh-token" : "account-link";
+  }
+
   status() {
     const linked = this.linkedRecord();
+    const playground = !!this.cfg.RING_ACCESS_TOKEN;
     return {
-      linked: !!linked,
-      accountId: linked?.accountId ?? null,
-      accessTokenExpiresAt: linked ? new Date(linked.expiresAt).toISOString() : null,
+      linked: playground || !!linked,
+      method: this.method,
+      accountId: playground ? null : (linked?.accountId ?? null),
+      accessTokenExpiresAt: !playground && linked && linked.expiresAt > 0 ? new Date(linked.expiresAt).toISOString() : null,
       unclaimedTokens: this.file.data.tokens.filter((t) => t.status === "unclaimed").length,
     };
   }
@@ -72,14 +97,22 @@ export class RingAuth {
 
   /** A valid bearer token for the linked account, refreshed when it is about to expire. */
   async accessToken(): Promise<string> {
+    if (this.cfg.RING_ACCESS_TOKEN) return this.cfg.RING_ACCESS_TOKEN;
     const record = this.linkedRecord();
-    if (!record) throw new RingApiError(401, "Not linked", "Link a Ring account first (Dashboard -> Connect Ring).");
+    if (!record) throw new RingApiError(401, "Not linked", "Link a Ring account first (Ring app or ring.com/appstore), or set RING_ACCESS_TOKEN from the Ring Developer Playground.");
     if (record.expiresAt - Date.now() > 5 * 60_000) return record.accessToken;
     return (await this.refresh(record)).accessToken;
   }
 
   /** Called after a 401 from the API. */
   async forceRefresh(): Promise<void> {
+    if (this.cfg.RING_ACCESS_TOKEN) {
+      throw new RingApiError(
+        401,
+        "Playground token expired",
+        "Playground tokens last about 30 minutes. Generate a new one at https://developer.amazon.com/ring/console/playground, update RING_ACCESS_TOKEN in .env and restart.",
+      );
+    }
     const record = this.linkedRecord();
     if (record) await this.refresh(record);
   }

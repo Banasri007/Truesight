@@ -53,6 +53,20 @@ test("an unlinked Ring account is 409 from Ring, not a 401 that signs the owner 
   assert.equal(anonymous.status, 401);
 });
 
+test("a Playground access token works without app credentials", async () => {
+  const cfg = loadConfig({ DATA_DIR: join(dir, "playground"), RING_MODE: "api", RING_ACCESS_TOKEN: "playground-token" });
+  const { ctx: pg } = await bootstrap(cfg);
+  assert.equal(await pg.auth!.accessToken(), "playground-token");
+  assert.deepEqual({ linked: pg.auth!.status().linked, method: pg.auth!.status().method }, { linked: true, method: "playground" });
+  await assert.rejects(pg.auth!.forceRefresh(), /Playground token expired/);
+  await pg.engine.stop();
+  pg.sse.close();
+  await pg.state.flush();
+
+  assert.throws(() => loadConfig({ RING_MODE: "api" }), /RING_CLIENT_ID is required/);
+  assert.throws(() => loadConfig({ RING_MODE: "api", RING_ACCESS_TOKEN: "a", RING_REFRESH_TOKEN: "b" }), /not both/);
+});
+
 test("the Account Link URL carries its own sign-in form", async () => {
   const time = String(Date.now());
   const page = await fetch(`${base}/auth/ring/link?nonce=abc&time=${time}`);

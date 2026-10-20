@@ -58,6 +58,10 @@ The model returns structured JSON constrained to your labels plus `unknown`. Out
 
 ## Use a real Ring account
 
+**Fastest path: a Playground token.** Generate a token in the [Ring Developer Playground](https://developer.amazon.com/ring/console/playground) (the same shortcut as Ring's [ring-api-helloworld](https://github.com/AmazonAppDev/ring-api-helloworld) starter). Then set `RING_MODE=api` and `RING_ACCESS_TOKEN=<token>` in `.env` and restart. No app credentials or tunnel are needed. The token lasts about 30 minutes and receives no webhooks, so sensors run on their schedule or with **Check now**.
+
+**Full integration: AppStore account linking** (webhooks, refresh tokens).
+
 1. Create an app in the [Ring Developer Console](https://developer.amazon.com/ring/console/apps) and note the **Client ID**, **Client Secret** and **HMAC key** (they are shown only once).
 2. Expose the server over HTTPS, for example `cloudflared tunnel --url http://localhost:8787`, and set `PUBLIC_BASE_URL` to that URL.
 3. In the console, configure:
@@ -66,7 +70,8 @@ The model returns structured JSON constrained to your labels plus `unknown`. Out
    - **Token Exchange URL**: `${PUBLIC_BASE_URL}/auth/ring/token-exchange`
    - **Redirect URI** (partner-initiated OAuth + PKCE): `${PUBLIC_BASE_URL}/auth/ring/callback`
 4. Set `RING_MODE=api`, `RING_CLIENT_ID`, `RING_CLIENT_SECRET`, `RING_HMAC_KEY` and an `ADMIN_TOKEN`. Run `npm run build && npm start` and open `PUBLIC_BASE_URL`.
-5. Add your Ring account as a staging user (Developer Console → Test) and link it.
+5. Add your Ring account as a staging user (Developer Console → Test → **Log in with Ring**). This only grants access to the staging app; it does not link it.
+6. Link it from the **Ring AppStore** (Ring app, or [ring.com/appstore](https://ring.com/appstore)): open your app, choose devices, and confirm. Ring POSTs a code to the Token Exchange URL, then sends you to the Account Link URL. Sign in there with `ADMIN_TOKEN` and choose **Link account**. The server log shows each step as `[ring-http] …` lines.
 
 ### Ring APIs used
 

@@ -1,4 +1,5 @@
 import { config as loadDotenv } from "dotenv";
+import { randomBytes } from "node:crypto";
 import { dirname, isAbsolute, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
@@ -26,6 +27,11 @@ const EnvSchema = z
     RING_CLIENT_ID: optional,
     RING_CLIENT_SECRET: optional,
     RING_HMAC_KEY: optional,
+    // Shortcuts that skip AppStore account linking (same as Ring's ring-api-helloworld starter):
+    // a short-lived (~30 min) token from https://developer.amazon.com/ring/console/playground,
+    // or a refresh token from a completed link (needs client id/secret to refresh).
+    RING_ACCESS_TOKEN: optional,
+    RING_REFRESH_TOKEN: optional,
     // Partner-initiated authorize request only; "ava.v1:read" is the only supported value.
     // Token responses report it back as scope "ava", which is expected.
     RING_SCOPE: z.string().default("ava.v1:read"),
@@ -60,8 +66,13 @@ const EnvSchema = z
     const need = (when: boolean, key: keyof typeof env, why: string) => {
       if (when && !env[key]) ctx.addIssue({ code: "custom", path: [key], message: `${key} is required when ${why}` });
     };
+    // A Playground access token is enough to call the API; everything else needs app credentials.
+    const playground = env.RING_MODE === "api" && !!env.RING_ACCESS_TOKEN;
     for (const key of ["RING_CLIENT_ID", "RING_CLIENT_SECRET", "RING_HMAC_KEY"] as const) {
-      need(env.RING_MODE === "api", key, "RING_MODE=api");
+      need(env.RING_MODE === "api" && !playground, key, "RING_MODE=api (unless RING_ACCESS_TOKEN is set)");
+    }
+    if (env.RING_ACCESS_TOKEN && env.RING_REFRESH_TOKEN) {
+      ctx.addIssue({ code: "custom", path: ["RING_ACCESS_TOKEN"], message: "Set RING_ACCESS_TOKEN or RING_REFRESH_TOKEN, not both" });
     }
     need(env.VISION_PROVIDER === "groq", "GROQ_API_KEY", "VISION_PROVIDER=groq");
     need(env.SIGNER === "kms", "KMS_KEY_ID", "SIGNER=kms");
@@ -92,6 +103,7 @@ export function loadConfig(source: NodeJS.ProcessEnv = process.env): Config {
     PUBLIC_BASE_URL: baseUrl,
     dataDir: isAbsolute(env.DATA_DIR) ? env.DATA_DIR : resolve(repoRoot, env.DATA_DIR),
     redirectUri: env.RING_REDIRECT_URI ?? `${baseUrl}/auth/ring/callback`,
-    webhookHmacKey: env.RING_MODE === "api" ? env.RING_HMAC_KEY! : env.SIM_HMAC_KEY,
+    // Without an HMAC key (Playground-only setups) no webhook can verify, so a random key rejects them all.
+    webhookHmacKey: env.RING_MODE === "api" ? (env.RING_HMAC_KEY ?? randomBytes(32).toString("hex")) : env.SIM_HMAC_KEY,
   };
 }

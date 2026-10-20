@@ -91,7 +91,19 @@ export function Dashboard({ status }: { status: Status | null }) {
 
       {status && (
         <div className="mb-10 grid grid-cols-2 gap-y-5 sm:grid-cols-3 xl:grid-cols-5">
-          <Stat label="Ring" value={status.ringMode === "simulator" ? "Simulator" : status.ring.linked ? "Linked" : "Not linked"} tone={status.ringMode === "api" && !status.ring.linked ? "warn" : undefined} />
+          <Stat
+            label="Ring"
+            value={
+              status.ringMode === "simulator"
+                ? "Simulator"
+                : status.ring.method === "playground"
+                  ? "Playground token"
+                  : status.ring.linked
+                    ? "Linked"
+                    : "Not linked"
+            }
+            tone={status.ringMode === "api" && !status.ring.linked ? "warn" : undefined}
+          />
           <Stat label="Perception" value={`${status.vision.provider} · ${status.vision.model}`} tone={status.vision.provider === "mock" ? "warn" : undefined} />
           <Stat label="Faces" value={status.faceDetector === "none" ? "zones only" : status.faceDetector} />
           <Stat label="Signer" value={short(status.signer.kid, 20)} />
@@ -103,7 +115,14 @@ export function Dashboard({ status }: { status: Status | null }) {
         <div className="mb-8 rounded-xl border border-amber/30 bg-amber/[0.06] px-5 py-4 text-[14px] leading-relaxed text-amber">
           <p className="font-medium">No Ring account is linked yet.</p>
           <p className="mt-1 text-amber/90">
-            On your phone, open the <strong>Ring app → AppStore</strong>, open this app (staging users see the staging version), choose the devices to share and confirm. Ring then sends you to TrueSight's link page: sign in there with your admin token and tap <strong>Link account</strong>.
+            Open the <strong>Ring AppStore</strong> (Ring app, or ring.com/appstore in this browser), open this app (staging users see the staging version), choose the devices to share and confirm. Ring then sends you to TrueSight's link page: sign in there with your admin token and choose <strong>Link account</strong>.
+          </p>
+          <p className="mt-2 text-amber/90">
+            Quick test instead: generate a token in the{" "}
+            <a className="underline" href="https://developer.amazon.com/ring/console/playground" target="_blank" rel="noreferrer">
+              Ring Developer Playground
+            </a>
+            , put it in <code className="font-mono text-[12.5px]">RING_ACCESS_TOKEN</code> in .env and restart. It lasts about 30 minutes and receives no webhooks.
           </p>
         </div>
       )}

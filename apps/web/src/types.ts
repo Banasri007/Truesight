@@ -118,7 +118,7 @@ export interface Notification {
 export interface Status {
   version: string;
   ringMode: "simulator" | "api";
-  ring: { linked: boolean; accountId: string | null; simulated?: boolean };
+  ring: { linked: boolean; accountId: string | null; simulated?: boolean; method?: "playground" | "refresh-token" | "account-link" | "none" };
   vision: { provider: string; model: string; effort: string };
   faceDetector: string;
   signer: { kid: string; description: string };
