@@ -59,7 +59,8 @@ export function ringRoutes(ctx: AppContext): Router {
     res.redirect("/#/dashboard?linked=1");
   });
 
-  // One-way linking, step 1: Ring delivers a single-use authorization code.
+  // One-way linking, step 1: Ring POSTs a single-use authorization code (valid 60s) as
+  // application/x-www-form-urlencoded `code=...`. JSON and query are tolerated for local testing.
   router.post("/auth/ring/token-exchange", express.urlencoded({ extended: false }), express.json(), async (req, res) => {
     const body = (req.body ?? {}) as Record<string, unknown>;
     const code = String(body.code ?? req.query.code ?? "");

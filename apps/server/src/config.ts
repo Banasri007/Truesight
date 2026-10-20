@@ -17,7 +17,8 @@ const EnvSchema = z
     DATA_DIR: z.string().default("data"),
     ADMIN_TOKEN: optional,
 
-    // Ring
+    // Ring. Staging and production share these hosts and credentials; the environment is
+    // picked per app in the Developer Console (staging settings + staging users).
     RING_MODE: z.enum(["simulator", "api"]).default("simulator"),
     RING_API_BASE: z.string().default("https://api.amazonvision.com"),
     RING_OAUTH_BASE: z.string().default("https://oauth.ring.com"),
@@ -25,7 +26,8 @@ const EnvSchema = z
     RING_CLIENT_ID: optional,
     RING_CLIENT_SECRET: optional,
     RING_HMAC_KEY: optional,
-    // The docs list "ava.v1:read" as the supported scope; some examples show "ava".
+    // Partner-initiated authorize request only; "ava.v1:read" is the only supported value.
+    // Token responses report it back as scope "ava", which is expected.
     RING_SCOPE: z.string().default("ava.v1:read"),
     RING_REDIRECT_URI: optional,
     SIM_HMAC_KEY: z.string().default("truesight-simulator-signing-key"),

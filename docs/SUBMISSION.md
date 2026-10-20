@@ -43,6 +43,7 @@ Optional: Amazon Bedrock (`VISION_PROVIDER=bedrock`, `apps/server/src/vision/cla
 ## Product feedback (outline; fill in with your own experience)
 
 - **Ring Partner API.** Used: webhooks, OAuth / account linking, device discovery, snapshots, clips, event history, chime playback, sensor events. Worked well: *[...]*. Needs work: *[...]*. Onboarding: *[...]*. Would build again: *[...]*.
+- **Ring Appstore MCP server** (`.mcp.json`). Used from an AI coding assistant to confirm the Token Exchange request format, the OAuth scope, and that staging shares the production hosts. Worked well: it found answers I had missed in the large reference page. Needs work: *[...]*.
 - **Groq (vision model).** *[...]*
 - **AWS KMS, DynamoDB, S3, Rekognition, SNS.** *[...]*
 
@@ -50,10 +51,10 @@ Optional: Amazon Bedrock (`VISION_PROVIDER=bedrock`, `apps/server/src/vision/cla
 
 | # | Task | Expected | What happened | Severity | Workaround | Suggestion |
 |---|---|---|---|---|---|---|
-| 1 | Pick the OAuth scope | One documented scope value | The authorize step lists `ava.v1:read` as the only supported scope, but the examples use `scope=ava` | Medium | Made the scope configurable (`RING_SCOPE`) | Use one value everywhere, and return a descriptive `invalid_scope` |
+| 1 | Pick the OAuth scope | The scope I request matches the scope the token reports | Requests use `ava.v1:read` (the only supported scope), but the token response returns `"scope": "ava"`, which made me think I had the wrong value | Low | Confirmed via the Ring MCP docs server; kept `ava.v1:read` and made it configurable (`RING_SCOPE`) | Return the same scope string that was requested, or add a note explaining the shorter form |
 | 2 | Find the sandbox / staging API host | A separate base URL for staging | The docs mention staging and production environments, but every example uses `https://api.amazonvision.com` | Medium | Built a local simulator that emits Ring-format signed webhooks | Document how staging differs (host, test devices, synthetic events) |
 | 3 | Tell cameras, chimes and sensors apart | A `kind` / `type` field on devices | `GET /v1/devices` has no type field; chimes are inferred from `audio.customizable_slots` | Low | Heuristics on capabilities and status, plus a manual override | Add `attributes.device_kind` |
-| 4 | Implement the Token Exchange URL | The request Ring sends (method, body fields) | The contract is described only in prose | Medium | Accept `code` from JSON, form or query | Publish a request/response example |
+| 4 | Implement the Token Exchange URL | Find the request Ring sends (method, content type, fields) next to the URL setting | The example (form-encoded POST with `code`, valid 60s, with a warning that JSON-only parsers drop it) exists, but I missed it in the very large reference page; I found it only through the Ring MCP docs server | Low | Form parser first, also accepting JSON or query | Link the example from the Developer Console field and the Configure guide |
 | 5 | Name PM2.5 consistently | The same field everywhere | Status uses `pm2_5`, webhooks use `pm25_level` | Low | Handled both | Align names, or document both side by side |
 | 6 | Read the API reference | A navigable reference page | One very large page (~370K characters) is hard to search and to give AI tools | Low | Read it in sections | Split it per resource, or ship an OpenAPI spec |
 
