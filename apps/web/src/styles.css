@@ -56,7 +56,7 @@
 
   /* Surfaces */
   .panel {
-    @apply rounded-xl border border-line bg-ink-900/70;
+    @apply rounded-xl border border-line bg-ink-900/92;
   }
   .panel-head {
     @apply flex items-center justify-between gap-3 border-b border-line px-5 py-3.5;

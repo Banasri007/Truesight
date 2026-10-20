@@ -58,7 +58,7 @@ export function ChainDemo() {
 
   return (
     <div className="space-y-5">
-      <div className="scrollbar-thin -mx-1 overflow-x-auto px-1 pb-2">
+      <div className="scrollbar-thin -mx-1 overflow-x-auto overflow-y-hidden px-1 pb-2">
         <div className="flex min-w-max items-stretch">
           {blocks.map((block, i) => {
             const linkOk = i === 0 || block.prev === blocks[i - 1]!.hash;
@@ -78,14 +78,15 @@ export function ChainDemo() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                  className={`w-44 rounded-xl border p-3.5 text-left transition-colors ${
+                  // Solid surfaces: the 3D device can pass behind this section, so nothing here is see-through.
+                  className={`w-44 rounded-xl border p-3.5 text-left shadow-[0_10px_30px_-12px_rgba(0,0,0,0.8)] transition-colors ${
                     block.edited
-                      ? "border-ember/60 bg-ember/[0.06]"
+                      ? "border-ember/60 bg-[#1c0f0c]"
                       : !linkOk || (brokenAt > 0 && i > brokenAt)
-                        ? "border-ember/25 bg-ink-900/70"
+                        ? "border-ember/30 bg-ink-900"
                         : selected === block.seq
-                          ? "border-signal/50 bg-signal/[0.05]"
-                          : "border-line bg-ink-900/70 hover:border-line-strong"
+                          ? "border-signal/50 bg-ink-850"
+                          : "border-line-strong bg-ink-900 hover:border-signal/40"
                   }`}
                 >
                   <div className="flex items-center justify-between font-mono text-[10.5px] text-fog">
@@ -105,7 +106,7 @@ export function ChainDemo() {
       </div>
 
       <div className="grid gap-5 md:grid-cols-[1fr_auto] md:items-start">
-        <div className="panel p-4">
+        <div className="min-w-0 rounded-xl border border-line-strong bg-ink-900 p-4">
           {current && (
             <>
               <div className="eyebrow mb-2">Entry #{current.seq} · canonical JSON</div>
@@ -118,19 +119,24 @@ export function ChainDemo() {
             </>
           )}
         </div>
-        <div className="flex flex-col gap-3 md:w-64">
-          <div className={`flex items-start gap-2.5 rounded-xl border px-4 py-3 text-[13px] ${brokenAt > 0 ? "border-ember/40 bg-ember/[0.06] text-ember" : "border-verdant/30 bg-verdant/[0.05] text-verdant"}`}>
+        <div className="flex flex-col gap-3 md:w-72">
+          <div className={`flex items-start gap-2.5 rounded-xl border px-4 py-3 text-[13px] ${brokenAt > 0 ? "border-ember/40 bg-[#1c0f0c] text-ember" : "border-verdant/30 bg-[#0b1912] text-verdant"}`}>
             {brokenAt > 0 ? <ShieldAlert className="mt-0.5 size-4 shrink-0" /> : <Link2 className="mt-0.5 size-4 shrink-0" />}
             <span>
               {brokenAt > 0
-                ? `Chain broken at #${brokenAt}: its prev no longer matches #${brokenAt - 1}.`
-                : `${blocks.length} entries, ${Math.max(0, blocks.length - 1)} links intact.`}
+                ? `Tampering detected. Entry #${brokenAt - 1} was edited, so #${brokenAt} no longer links to it.`
+                : `${blocks.length} entries, ${Math.max(0, blocks.length - 1)} links intact. Nothing has been edited.`}
             </span>
           </div>
-          <button type="button" className="btn" onClick={() => setTampered((t) => !t)}>
+          <button type="button" className="btn bg-ink-900" onClick={() => setTampered((t) => !t)}>
             {tampered ? <RotateCcw className="size-3.5" /> : <ShieldAlert className="size-3.5" />}
-            {tampered ? "Restore the record" : `Rewrite #${TAMPERED_SEQ} to “latched”`}
+            {tampered ? "Undo the tampering" : "Try to tamper with the record"}
           </button>
+          <p className="rounded-xl border border-line bg-ink-900 px-4 py-3 text-[12.5px] leading-relaxed text-fog">
+            {tampered
+              ? `Entry #${TAMPERED_SEQ} now says the gate went to “latched”, hiding the alert. Its hash changed, so the link from #${TAMPERED_SEQ + 1} breaks. Covering it up would mean rewriting every later entry, and those carry signatures only TrueSight's key can make.`
+              : `Pretend someone secretly edits entry #${TAMPERED_SEQ} afterwards, changing “open” to “latched” to hide that the gate was open. The hashes are real SHA-256, computed in your browser.`}
+          </p>
         </div>
       </div>
     </div>

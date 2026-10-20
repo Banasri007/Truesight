@@ -12,7 +12,8 @@ import { HOTSPOTS, live, ui, type HotspotId } from "./store";
 export function Hotspot({ id, position, normal, side }: { id: HotspotId; position: [number, number, number]; normal: [number, number, number]; side: "left" | "right" }) {
   const anchor = useRef<THREE.Group>(null!);
   const button = useRef<HTMLButtonElement>(null);
-  const n = useMemo(() => new THREE.Vector3(...normal).normalize(), [normal]);
+  const label = useRef<HTMLSpanElement>(null);
+  const n =useMemo(() => new THREE.Vector3(...normal).normalize(), [normal]);
   const tmp = useMemo(() => ({ pos: new THREE.Vector3(), dir: new THREE.Vector3(), quat: new THREE.Quaternion(), toCam: new THREE.Vector3() }), []);
   const info = HOTSPOTS[id];
 
@@ -29,6 +30,8 @@ export function Hotspot({ id, position, normal, side }: { id: HotspotId; positio
     const opacity = facing * inStage * (focus && focus !== id ? 0.2 : 1);
     el.style.opacity = opacity.toFixed(3);
     el.style.pointerEvents = opacity > 0.35 ? "auto" : "none";
+    // The focus panel already names the point, and a floating label would sit on top of its text.
+    if (label.current) label.current.style.opacity = focus ? "0" : "1";
   });
 
   const dotOffset = 7; // half of the 14px dot, so the dot centre sits on the anchor
@@ -47,9 +50,11 @@ export function Hotspot({ id, position, normal, side }: { id: HotspotId; positio
             <span className="absolute inset-0 rounded-full border border-signal/50 transition duration-500 group-hover:scale-150 group-hover:border-signal" />
             <span className="size-1.5 rounded-full bg-signal shadow-[0_0_12px_rgb(143_216_255/0.9)]" />
           </span>
-          <span className={`h-px w-9 ${side === "left" ? "bg-gradient-to-l" : "bg-gradient-to-r"} from-signal/70 to-signal/0`} />
-          <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-mist transition-colors group-hover:text-snow">
-            <span className="text-signal">{info.index}</span> {info.label}
+          <span ref={label} className={`flex items-center gap-2.5 transition-opacity duration-500 ${side === "left" ? "flex-row-reverse" : ""}`}>
+            <span className={`h-px w-9 ${side === "left" ? "bg-gradient-to-l" : "bg-gradient-to-r"} from-signal/70 to-signal/0`} />
+            <span className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-mist transition-colors group-hover:text-snow">
+              <span className="text-signal">{info.index}</span> {info.label}
+            </span>
           </span>
         </button>
       </Html>

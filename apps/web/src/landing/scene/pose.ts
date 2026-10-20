@@ -19,7 +19,7 @@ export const KEYFRAMES: Pose[] = [
   p(1.6, -0.08, 0, 0.06, -0.52, 0.03, 0.84), // hero: three-quarter view, right of the headline
   p(1.9, -0.05, 0, 0.02, -1.38, 0, 0.82), // teach: side profile, machined edge
   p(-1.6, -1.08, 1.2, 0.12, 0.42, 0, 1.5), // privacy: close on the lens, device on the left
-  p(-1.6, 0.02, 0.35, 0.16, 0.72, 0.02, 1.0, 1), // proof: faceplate lifts, core revealed
+  p(-1.85, 0.42, -0.2, 0.16, 0.72, 0.02, 0.78, 1), // proof: faceplate lifts, core revealed; sits high-left, clear of the chain cards
   p(-2.0, 0, -0.3, 0.04, 0.38, 0, 0.86), // verify: reassembled, calm, still left
   p(-4.1, 1.9, -3.4, 0.25, 1.1, 0.08, 0.7), // telemetry: drifts out of frame, top-left, clearing the chart
   p(-2.45, 0.1, -1.1, 0.12, 0.72, -0.03, 0.84), // stack: returns on the left

@@ -11,6 +11,11 @@ interface JsonApiResource {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Undocumented 422 seen after switching to a new Developer Playground token: older recordings
+// can no longer be decrypted for the new token. A fresh recording fixes it.
+const GRECO_HELP =
+  "Ring could not decrypt this recording for the current token. This happens with recordings made before your latest token. Record a new clip (Playground: Package, Vehicle or Motion; real camera: motion or Live View), then try again.";
+
 const NO_MEDIA_HELP =
   "Ring only returns images the camera already recorded, after you linked TrueSight. Trigger motion in front of the camera or open Live View in the Ring app, then try again.";
 
@@ -196,6 +201,11 @@ export class RingApiClient implements RingClient {
         if (!location) await this.fail(response, "Snapshot redirect without Location");
         // Pre-signed, time-limited URL: no Authorization header.
         media = await fetch(new URL(location!, this.cfg.RING_API_BASE));
+      }
+      if (media.status === 422) {
+        const text = await media.text();
+        if (text.includes("GRECO_NO_VALID_KEY")) throw new RingApiError(422, "Recording not readable with this token", GRECO_HELP, "GRECO_NO_VALID_KEY");
+        await this.fail(new Response(text, { status: 422 }), "Snapshot download failed");
       }
       if (!media.ok) await this.fail(media, "Snapshot download failed");
       const contentType = media.headers.get("Content-Type") ?? "image/jpeg";
