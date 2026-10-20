@@ -1,5 +1,5 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import { canonicalize } from "witness-verify";
+import { canonicalize } from "truesight-verify";
 import {
   SensorDefinitionSchema,
   type PrivacyReceipt,

@@ -15,13 +15,13 @@ BEDROCK_MODEL=anthropic.claude-opus-5-5
 ## 2. AWS KMS (signing key)
 
 ```bash
-aws kms create-key --key-spec ECC_NIST_P256 --key-usage SIGN_VERIFY --description "Witness for Ring ledger signer"
-aws kms create-alias --alias-name alias/witness-signer --target-key-id <KeyId from the output>
+aws kms create-key --key-spec ECC_NIST_P256 --key-usage SIGN_VERIFY --description "TrueSight ledger signer"
+aws kms create-alias --alias-name alias/truesight-signer --target-key-id <KeyId from the output>
 ```
 
 ```bash
 SIGNER=kms
-KMS_KEY_ID=alias/witness-signer
+KMS_KEY_ID=alias/truesight-signer
 ```
 
 A ledger is bound to one key. When you switch from `local` to `kms`, also switch to a fresh `DATA_DIR` or DynamoDB table. The server refuses to start otherwise.
@@ -29,7 +29,7 @@ A ledger is bound to one key. When you switch from `local` to `kms`, also switch
 ## 3. Amazon DynamoDB (ledger)
 
 ```bash
-aws dynamodb create-table --table-name witness-ledger \
+aws dynamodb create-table --table-name truesight-ledger \
   --attribute-definitions AttributeName=pk,AttributeType=S AttributeName=seq,AttributeType=N \
   --key-schema AttributeName=pk,KeyType=HASH AttributeName=seq,KeyType=RANGE \
   --billing-mode PAY_PER_REQUEST
@@ -37,14 +37,14 @@ aws dynamodb create-table --table-name witness-ledger \
 
 ```bash
 LEDGER_STORE=dynamodb
-DYNAMODB_LEDGER_TABLE=witness-ledger
+DYNAMODB_LEDGER_TABLE=truesight-ledger
 ```
 
 ## 4. Amazon S3 with Object Lock (evidence)
 
 ```bash
-aws s3api create-bucket --bucket witness-evidence-<unique> --object-lock-enabled-for-bucket
-aws s3api put-public-access-block --bucket witness-evidence-<unique> \
+aws s3api create-bucket --bucket truesight-evidence-<unique> --object-lock-enabled-for-bucket
+aws s3api put-public-access-block --bucket truesight-evidence-<unique> \
   --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
 ```
 
@@ -52,7 +52,7 @@ aws s3api put-public-access-block --bucket witness-evidence-<unique> \
 
 ```bash
 BLOB_STORE=s3
-S3_EVIDENCE_BUCKET=witness-evidence-<unique>
+S3_EVIDENCE_BUCKET=truesight-evidence-<unique>
 S3_OBJECT_LOCK_MODE=GOVERNANCE   # or COMPLIANCE
 EVIDENCE_RETENTION_DAYS=30
 ```
@@ -65,12 +65,12 @@ Objects are locked until their retention date. Add an S3 lifecycle rule to expir
 FACE_DETECTOR=rekognition
 ```
 
-Witness calls only `DetectFaces` and uses only the bounding boxes. It never calls face search or collection APIs.
+TrueSight calls only `DetectFaces` and uses only the bounding boxes. It never calls face search or collection APIs.
 
 ## 6. Amazon SNS (alert SMS / email)
 
 ```bash
-aws sns create-topic --name witness-alerts
+aws sns create-topic --name truesight-alerts
 aws sns subscribe --topic-arn <TopicArn> --protocol email --notification-endpoint you@example.com
 ```
 
@@ -86,12 +86,12 @@ SNS_TOPIC_ARN=<TopicArn>
   "Statement": [
     { "Effect": "Allow", "Action": ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"], "Resource": "*" },
     { "Effect": "Allow", "Action": ["kms:Sign", "kms:GetPublicKey"], "Resource": "arn:aws:kms:us-east-1:<account>:key/<key-id>" },
-    { "Effect": "Allow", "Action": ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:Query"], "Resource": "arn:aws:dynamodb:us-east-1:<account>:table/witness-ledger" },
-    { "Effect": "Allow", "Action": ["s3:PutObject", "s3:GetObject", "s3:DeleteObject", "s3:PutObjectRetention"], "Resource": "arn:aws:s3:::witness-evidence-<unique>/*" },
+    { "Effect": "Allow", "Action": ["dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:Query"], "Resource": "arn:aws:dynamodb:us-east-1:<account>:table/truesight-ledger" },
+    { "Effect": "Allow", "Action": ["s3:PutObject", "s3:GetObject", "s3:DeleteObject", "s3:PutObjectRetention"], "Resource": "arn:aws:s3:::truesight-evidence-<unique>/*" },
     { "Effect": "Allow", "Action": ["rekognition:DetectFaces"], "Resource": "*" },
     { "Effect": "Allow", "Action": ["sns:Publish"], "Resource": "<TopicArn>" }
   ]
 }
 ```
 
-Witness calls Claude through Bedrock's Messages-API (Mantle) endpoint via `@anthropic-ai/bedrock-sdk`. If requests are denied, check the Bedrock documentation for the IAM actions that endpoint requires in your region and add them to the first statement. Narrow `Resource` to the model ARN before production.
+TrueSight calls Claude through Bedrock's Messages-API (Mantle) endpoint via `@anthropic-ai/bedrock-sdk`. If requests are denied, check the Bedrock documentation for the IAM actions that endpoint requires in your region and add them to the first statement. Narrow `Resource` to the model ARN before production.

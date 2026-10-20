@@ -3,7 +3,7 @@ import type { NormRect } from "../domain.js";
 
 /**
  * Finds face *locations* so they can be blurred. Never identifies anyone:
- * Witness only uses bounding boxes and does not call any face search or
+ * TrueSight only uses bounding boxes and does not call any face search or
  * face collection APIs.
  */
 export interface FaceDetector {

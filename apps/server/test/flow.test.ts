@@ -5,7 +5,7 @@ import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { asEs256PublicJwk, verifyBundle, verifyLedger, type EvidenceBundle, type LedgerEntry } from "witness-verify";
+import { asEs256PublicJwk, verifyBundle, verifyLedger, type EvidenceBundle, type LedgerEntry } from "truesight-verify";
 import { bootstrap } from "../src/bootstrap.js";
 import { loadConfig } from "../src/config.js";
 import type { Sensor } from "../src/domain.js";
@@ -37,7 +37,7 @@ async function waitFor<T>(what: string, probe: () => Promise<T | undefined> | T 
 }
 
 before(async () => {
-  dir = await mkdtemp(join(tmpdir(), "witness-test-"));
+  dir = await mkdtemp(join(tmpdir(), "truesight-test-"));
   const cfg = loadConfig({ DATA_DIR: dir, PORT: "8787", RING_MODE: "simulator", VISION_PROVIDER: "mock" });
   const booted = await bootstrap(cfg, { eventSnapshotDelayMs: 10, confirmDelayMs: 50 });
   ctx = booted.ctx;
@@ -77,7 +77,7 @@ test("teach -> alert -> signed, redacted evidence -> verifiable bundle", async (
       states: ["latched", "open"],
       alertStates: ["open"],
       debounce: 2,
-      actions: { notify: true, chime: { deviceId: SIM.chime, slotEvent: "witness_alert" } },
+      actions: { notify: true, chime: { deviceId: SIM.chime, slotEvent: "truesight_alert" } },
       corroboratingDeviceIds: [SIM.gateContact],
     }),
   });

@@ -47,7 +47,7 @@ export function zeroRegions(image: RgbaImage, regions: PixelRect[]): Uint8Array 
  * it matches, the redaction changed nothing except the declared regions.
  */
 export async function preservedPixelsDigest(image: RgbaImage, regions: PixelRect[]): Promise<string> {
-  const header = utf8(`witness.pixels/1:${image.width}x${image.height}:`);
+  const header = utf8(`truesight.pixels/1:${image.width}x${image.height}:`);
   const body = zeroRegions(image, regions);
   const data = new Uint8Array(header.length + body.length);
   data.set(header, 0);

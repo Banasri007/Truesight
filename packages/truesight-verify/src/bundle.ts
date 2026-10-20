@@ -14,7 +14,7 @@ import {
 import { verifyLedger, type LedgerEntry, type SignFn } from "./ledger.js";
 import { decodePngRgba, preservedPixelsDigest, type PixelRect } from "./pixels.js";
 
-export const BUNDLE_FORMAT = "witness.bundle/1";
+export const BUNDLE_FORMAT = "truesight.bundle/1";
 
 export interface BundleAsset {
   evidenceId: string;

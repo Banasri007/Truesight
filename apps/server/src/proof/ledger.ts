@@ -2,7 +2,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { appendFile, mkdir, readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { GENESIS_PREV, createEntry, type LedgerEntry } from "witness-verify";
+import { GENESIS_PREV, createEntry, type LedgerEntry } from "truesight-verify";
 import type { Signer } from "./signer.js";
 
 export interface LedgerStore {
@@ -67,7 +67,7 @@ export class LocalLedgerStore implements LedgerStore {
 export class DynamoLedgerStore implements LedgerStore {
   readonly description: string;
   private readonly db: DynamoDBDocumentClient;
-  private static readonly PK = "witness-ledger";
+  private static readonly PK = "truesight-ledger";
 
   constructor(
     region: string,

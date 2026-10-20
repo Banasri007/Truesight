@@ -2,7 +2,7 @@ import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { createHash, timingSafeEqual } from "node:crypto";
 import type { AppContext } from "./context.js";
 
-export const SESSION_COOKIE = "witness_admin";
+export const SESSION_COOKIE = "truesight_admin";
 
 const digest = (value: string) => createHash("sha256").update(value).digest();
 

@@ -1,7 +1,7 @@
 {
-  "name": "witness-verify",
+  "name": "truesight-verify",
   "version": "0.1.0",
-  "description": "Verify tamper-evident, privacy-redacted evidence bundles and hash-chained ledgers produced by Witness for Ring. Runs in Node and in the browser.",
+  "description": "Verify tamper-evident, privacy-redacted evidence bundles and hash-chained ledgers produced by TrueSight. Runs in Node and in the browser.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -13,7 +13,7 @@
     }
   },
   "bin": {
-    "witness-verify": "./dist/cli.js"
+    "truesight-verify": "./dist/cli.js"
   },
   "files": [
     "dist",

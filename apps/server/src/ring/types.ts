@@ -34,7 +34,7 @@ export interface HistoryEvent {
   end: number | null;
 }
 
-/** Everything Witness needs from Ring, implemented by the real API client and by the simulator. */
+/** Everything TrueSight needs from Ring, implemented by the real API client and by the simulator. */
 export interface RingClient {
   readonly mode: "api" | "simulator";
   listDevices(): Promise<RingDevice[]>;

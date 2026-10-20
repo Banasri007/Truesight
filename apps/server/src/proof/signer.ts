@@ -2,7 +2,7 @@ import { GetPublicKeyCommand, KMSClient, SignCommand } from "@aws-sdk/client-kms
 import { createHash, createPrivateKey, createPublicKey, generateKeyPairSync, sign as nodeSign, type KeyObject } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { asEs256PublicJwk, kidFor, type Es256PublicJwk } from "witness-verify";
+import { asEs256PublicJwk, kidFor, type Es256PublicJwk } from "truesight-verify";
 
 /** ES256 signer. Signatures are IEEE P1363 (r || s), the JOSE / WebCrypto format. */
 export interface Signer {

@@ -5,21 +5,21 @@ These are drafts. Edit them in your own words, and replace every *[bracketed]* p
 ## Track and mini challenges
 
 - **Primary track:** Ring
-- **Mini challenges:** AWS Builder (Bedrock, KMS, DynamoDB, S3 Object Lock, Rekognition, SNS) · Open Source (`witness-verify`)
+- **Mini challenges:** AWS Builder (Bedrock, KMS, DynamoDB, S3 Object Lock, Rekognition, SNS) · Open Source (`truesight-verify`)
 
 ## Project description (draft)
 
-> **Witness for Ring turns any Ring camera into any sensor, and makes what it sees trustworthy and private.**
+> **TrueSight turns any Ring camera into any sensor, and makes what it sees trustworthy and private.**
 >
-> Draw a box on a camera frame and ask a question in plain words: "Is the side gate latched?", "Are the bins at the curb?", "Is the garage door open?". On every Ring motion event, doorbell press, linked contact-sensor event, or on a schedule, Witness fetches a snapshot through the Ring API. It pixelates privacy zones and faces and sends **only the region you drew** to Claude (Claude API or Amazon Bedrock), with structured output limited to your answers. Answers are debounced, and every state change is signed into an append-only, hash-chained ledger (AWS KMS).
+> Draw a box on a camera frame and ask a question in plain words: "Is the side gate latched?", "Are the bins at the curb?", "Is the garage door open?". On every Ring motion event, doorbell press, linked contact-sensor event, or on a schedule, TrueSight fetches a snapshot through the Ring API. It pixelates privacy zones and faces and sends **only the region you drew** to Claude (Claude API or Amazon Bedrock), with structured output limited to your answers. Answers are debounced, and every state change is signed into an append-only, hash-chained ledger (AWS KMS).
 >
-> When a sensor enters an alert state, Witness hashes and signs the original frame before anything touches it. It then redacts faces and privacy zones and signs the redaction as an edit, including a digest of every untouched pixel. A Ring Chime plays an alert and the owner gets a notification. The incident exports as a single signed bundle that anyone can verify in a browser, proving the image is authentic and that the redaction was the only change, without seeing the original.
+> When a sensor enters an alert state, TrueSight hashes and signs the original frame before anything touches it. It then redacts faces and privacy zones and signs the redaction as an edit, including a digest of every untouched pixel. A Ring Chime plays an alert and the owner gets a notification. The incident exports as a single signed bundle that anyone can verify in a browser, proving the image is authentic and that the redaction was the only change, without seeing the original.
 >
 > **Why it matters for Ring:** one camera can replace several single-purpose sensors, which gives people a reason to add cameras. Verified evidence opens insurer partnerships. Visible privacy removes the most common objection to buying a camera.
 
 ## How it works
 
-See the [README](../README.md#architecture). Key files: [sensors/engine.ts](../apps/server/src/sensors/engine.ts), [privacy/perception.ts](../apps/server/src/privacy/perception.ts), [proof/evidence.ts](../apps/server/src/proof/evidence.ts), [packages/witness-verify](../packages/witness-verify).
+See the [README](../README.md#architecture). Key files: [sensors/engine.ts](../apps/server/src/sensors/engine.ts), [privacy/perception.ts](../apps/server/src/privacy/perception.ts), [proof/evidence.ts](../apps/server/src/proof/evidence.ts), [packages/truesight-verify](../packages/truesight-verify).
 
 ## AWS Builder: integrations
 
@@ -34,7 +34,7 @@ See the [README](../README.md#architecture). Key files: [sensors/engine.ts](../a
 
 ## Open Source mini challenge
 
-- **Contribution:** `witness-verify`, a separate MIT-licensed library and CLI in `packages/witness-verify`. You can also publish it as its own repository or npm package.
+- **Contribution:** `truesight-verify`, a separate MIT-licensed library and CLI in `packages/truesight-verify`. You can also publish it as its own repository or npm package.
 - **What it does:** offline verification of hash-chained ES256 ledgers and redacted evidence bundles, in browsers and Node.
 - **Why it matters:** anyone (an insurer, a neighbor, a court clerk) can verify Ring-derived evidence without trusting or contacting the app that produced it.
 - **Fields to fill:** contribution URL *[...]*, repo URL *[...]*, GitHub username *[...]*.

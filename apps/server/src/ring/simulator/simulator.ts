@@ -42,7 +42,7 @@ const DEVICES: Omit<RingDevice, "online">[] = [
 const CHIME_SLOTS: ChimeSlot[] = [
   { event: "ding", name: "Doorbell ding", disabled: false },
   { event: "motion", name: "Motion tone", disabled: false },
-  { event: "witness_alert", name: "Witness alert", disabled: false },
+  { event: "truesight_alert", name: "TrueSight alert", disabled: false },
 ];
 
 export interface SimulatorHooks {

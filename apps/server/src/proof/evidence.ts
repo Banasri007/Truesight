@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import { decodePngRgba, preservedPixelsDigest } from "witness-verify";
+import { decodePngRgba, preservedPixelsDigest } from "truesight-verify";
 import type { EvidenceRecord, PixelRect, Sensor } from "../domain.js";
 import type { SseHub } from "../notify/sse.js";
 import type { FaceDetector } from "../privacy/faces.js";

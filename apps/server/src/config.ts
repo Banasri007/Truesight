@@ -28,7 +28,7 @@ const EnvSchema = z
     // The docs list "ava.v1:read" as the supported scope; some examples show "ava".
     RING_SCOPE: z.string().default("ava.v1:read"),
     RING_REDIRECT_URI: optional,
-    SIM_HMAC_KEY: z.string().default("witness-simulator-signing-key"),
+    SIM_HMAC_KEY: z.string().default("truesight-simulator-signing-key"),
 
     // Perception
     VISION_PROVIDER: z.enum(["mock", "anthropic", "bedrock"]).default("mock"),

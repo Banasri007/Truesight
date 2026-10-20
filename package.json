@@ -1,8 +1,8 @@
 {
-  "name": "witness-for-ring",
+  "name": "truesight",
   "version": "0.1.0",
   "private": true,
-  "description": "Witness for Ring: virtual sensors you teach, evidence you can trust, privacy you can see.",
+  "description": "TrueSight: virtual sensors you teach, evidence you can trust, privacy you can see.",
   "license": "MIT",
   "type": "module",
   "workspaces": [
@@ -13,16 +13,17 @@
     "node": ">=20.11"
   },
   "scripts": {
-    "build:verify": "npm run build -w witness-verify",
-    "dev": "npm run build:verify && concurrently -n server,web -c blue,magenta \"npm run dev -w @witness/server\" \"npm run dev -w @witness/web\"",
-    "build": "npm run build -w witness-verify && npm run build -w @witness/server && npm run build -w @witness/web",
-    "start": "npm run start -w @witness/server",
-    "test": "npm run build:verify && npm test -w witness-verify && npm test -w @witness/server",
-    "typecheck": "npm run build:verify && npm run typecheck -w @witness/server && npm run typecheck -w @witness/web"
+    "build:verify": "npm run build -w truesight-verify",
+    "dev": "npm run build:verify && concurrently -n server,web -c blue,magenta \"npm run dev -w @truesight/server\" \"wait-on --timeout 60000 tcp:127.0.0.1:8787 && npm run dev -w @truesight/web\"",
+    "build": "npm run build -w truesight-verify && npm run build -w @truesight/server && npm run build -w @truesight/web",
+    "start": "npm run start -w @truesight/server",
+    "test": "npm run build:verify && npm test -w truesight-verify && npm test -w @truesight/server",
+    "typecheck": "npm run build:verify && npm run typecheck -w @truesight/server && npm run typecheck -w @truesight/web"
   },
   "devDependencies": {
     "concurrently": "^10.0.6",
     "tsx": "^4.23.15",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "wait-on": "^9.5.1"
   }
 }

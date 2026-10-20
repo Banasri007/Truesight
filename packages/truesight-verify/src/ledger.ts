@@ -51,7 +51,7 @@ export async function hashEntryBody(body: LedgerEntryBody): Promise<string> {
   return sha256Hex(utf8(canonicalize(entryBody(body))));
 }
 
-/** Build and sign the next entry. Used by the Witness server and by tests. */
+/** Build and sign the next entry. Used by the TrueSight server and by tests. */
 export async function createEntry(body: LedgerEntryBody, sign: SignFn): Promise<LedgerEntry> {
   const canonical = utf8(canonicalize(entryBody(body)));
   const [hash, signature] = await Promise.all([sha256Hex(canonical), sign(canonical)]);

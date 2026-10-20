@@ -1,5 +1,5 @@
 import sharp from "sharp";
-import { clampRect, type RgbaImage } from "witness-verify";
+import { clampRect, type RgbaImage } from "truesight-verify";
 import type { NormRect, PixelRect } from "../domain.js";
 
 /** Decode any image sharp understands into 8-bit sRGB RGBA. */

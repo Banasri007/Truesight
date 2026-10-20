@@ -1,5 +1,5 @@
 /**
- * Deterministic JSON serialization used for every hash and signature in Witness.
+ * Deterministic JSON serialization used for every hash and signature in TrueSight.
  *
  * Rules: object keys sorted by UTF-16 code unit order, no whitespace,
  * `undefined` object members dropped, `undefined` array items become null,

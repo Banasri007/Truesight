@@ -1,7 +1,9 @@
+import { motion } from "framer-motion";
+import { Check, Download, Eye, ShieldCheck, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { verifyBundle, type BundleReport, type EvidenceBundle } from "witness-verify";
+import { verifyBundle, type BundleReport, type EvidenceBundle } from "truesight-verify";
 import { downloadJson, errorMessage, get, post } from "../api";
-import { ErrorText, short, timeAgo, useTicker } from "../components";
+import { EASE, Empty, ErrorText, PageHeader, short, timeAgo, useTicker } from "../console/ui";
 import { useEvent } from "../events";
 import type { EvidenceRecord } from "../types";
 
@@ -25,7 +27,7 @@ export function EvidencePage() {
       const bundle = await post<EvidenceBundle>(`/api/evidence/${record.id}/export`);
       const report = await verifyBundle(bundle);
       setReports((r) => ({ ...r, [record.id]: report }));
-      if (download) downloadJson(`witness-${record.id}.json`, bundle);
+      if (download) downloadJson(`truesight-${record.id}.json`, bundle);
     } catch (e) {
       setError(errorMessage(e));
     } finally {
@@ -40,82 +42,101 @@ export function EvidencePage() {
 
   return (
     <>
-      <div className="page-head">
-        <div>
-          <h1>Evidence</h1>
-          <p>
-            When a sensor enters an alert state, the triggering frame is hashed and signed <em>before</em> anything touches it. Faces and privacy zones are then
-            pixelated, and the redaction is signed as an edit with a digest of every untouched pixel. Export a bundle and anyone can verify it, without seeing the original.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        index="03"
+        eyebrow="Evidence"
+        title={<>Sealed, <span className="italic text-signal">then</span> redacted.</>}
+        description="When a sensor enters an alert state, the triggering frame is hashed and signed before anything touches it. Faces and privacy zones are then pixelated, and the redaction is signed as an edit, with a digest of every untouched pixel."
+      />
       <ErrorText error={error} />
 
       {original && (
-        <div className="card card-body stack" style={{ marginBottom: 16 }}>
-          <div className="row between">
-            <strong>Unredacted original (access logged)</strong>
-            <button onClick={() => setOriginal(null)}>Close</button>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 z-50 grid place-items-center bg-ink-950/85 p-6 backdrop-blur-md" onClick={() => setOriginal(null)}>
+          <div className="w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-3 flex items-center justify-between">
+              <span className="font-mono text-[11px] uppercase tracking-[0.16em] text-amber">Unredacted original · this view was logged</span>
+              <button type="button" className="btn btn-sm" onClick={() => setOriginal(null)}>
+                <X className="size-3.5" /> Close
+              </button>
+            </div>
+            <img className="w-full rounded-xl border border-line" src={original} alt="Unredacted original" />
           </div>
-          <img className="img-frame" src={original} alt="Unredacted original" />
-        </div>
+        </motion.div>
       )}
 
       {items === null ? (
-        <p className="muted">Loading…</p>
-      ) : items.length === 0 ? (
-        <div className="card empty">
-          <h2>No evidence yet</h2>
-          <p>Evidence is captured automatically when a sensor enters one of its alert states, for example a gate that changes from “latched” to “open”.</p>
+        <div className="grid gap-5 md:grid-cols-2">
+          <div className="panel h-96 animate-pulse" />
+          <div className="panel h-96 animate-pulse" />
         </div>
+      ) : items.length === 0 ? (
+        <Empty title="No evidence yet" body="Evidence is captured automatically when a sensor enters one of its alert states, for example a gate that changes from “latched” to “open”." />
       ) : (
-        <div className="grid grid-2">
-          {items.map((record) => {
+        <div className="grid gap-5 lg:grid-cols-2">
+          {items.map((record, i) => {
             const report = reports[record.id];
+            const faces = record.regions.filter((r) => r.kind === "face").length;
+            const zones = record.regions.filter((r) => r.kind === "privacy_zone").length;
             return (
-              <div key={record.id} className="card">
-                <img className="img-frame" style={{ borderRadius: "12px 12px 0 0", border: 0 }} src={`/api/evidence/${record.id}/redacted`} alt={`Redacted evidence ${record.id}`} />
-                <div className="card-body stack" style={{ gap: 8 }}>
-                  <div className="row between">
-                    <h3>{record.sensorName}</h3>
-                    <span className="pill alert"><span className="dot" />{record.state}</span>
+              <motion.article key={record.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: i * 0.05, ease: EASE }} className="panel overflow-hidden">
+                <div className="relative">
+                  <img className="block aspect-video w-full object-cover" src={`/api/evidence/${record.id}/redacted`} alt={`Redacted evidence ${record.id}`} />
+                  <div className="absolute inset-x-0 bottom-0 flex items-end justify-between bg-gradient-to-t from-ink-950/90 to-transparent p-4 pt-12">
+                    <div>
+                      <h3 className="text-[16px] font-medium">{record.sensorName}</h3>
+                      <p className="font-mono text-[11px] text-mist">
+                        {record.deviceName} · {new Date(record.capturedAt).toLocaleString()}
+                      </p>
+                    </div>
+                    <span className="state state-alert">
+                      <span className="size-1.5 rounded-full bg-current" />
+                      {record.state}
+                    </span>
                   </div>
-                  <div className="small muted">
-                    {record.deviceName} · {new Date(record.capturedAt).toLocaleString()} ({timeAgo(record.capturedAt)})
-                  </div>
-                  <div className="small">
-                    <span className="badge">{record.regions.filter((r) => r.kind === "face").length} face(s)</span>{" "}
-                    <span className="badge">{record.regions.filter((r) => r.kind === "privacy_zone").length} privacy zone(s)</span>{" "}
-                    {record.clip && <span className="badge ok">clip attached</span>}{" "}
-                    {record.purgedAt ? <span className="badge">original purged</span> : <span className="badge">original kept until retention</span>}
-                  </div>
-                  <div className="small mono muted">
-                    original {short(record.originalSha256, 16)} · ledger #{record.capturedSeq}
-                    <br />
-                    redacted {short(record.redactedSha256, 16)} · ledger #{record.redactedSeq}
-                  </div>
-                  <div className="actions">
-                    <button className="primary" disabled={busy === record.id} onClick={() => exportBundle(record, true)}>
-                      ⬇ Export bundle
+                </div>
+                <div className="space-y-4 p-5">
+                  <dl className="grid grid-cols-2 gap-x-6 gap-y-2 font-mono text-[11px]">
+                    <dt className="text-fog">original</dt>
+                    <dd className="truncate text-mist">
+                      {short(record.originalSha256, 14)} <span className="text-fog">#{record.capturedSeq}</span>
+                    </dd>
+                    <dt className="text-fog">redacted</dt>
+                    <dd className="truncate text-mist">
+                      {short(record.redactedSha256, 14)} <span className="text-fog">#{record.redactedSeq}</span>
+                    </dd>
+                    <dt className="text-fog">regions</dt>
+                    <dd className="text-mist">
+                      {faces} face · {zones} zone
+                    </dd>
+                    <dt className="text-fog">original copy</dt>
+                    <dd className="text-mist">{record.purgedAt ? "purged" : `kept · ${timeAgo(record.capturedAt)}`}</dd>
+                  </dl>
+
+                  {report && (
+                    <div className={`flex items-center gap-2.5 rounded-lg border px-3.5 py-2.5 text-[13px] ${report.ok ? "border-verdant/30 bg-verdant/[0.06] text-verdant" : "border-ember/30 bg-ember/[0.06] text-ember"}`}>
+                      {report.ok ? <Check className="size-4" /> : <X className="size-4" />}
+                      {report.ok ? "Verified" : "Not verified"} · {report.checks.filter((c) => c.ok).length}/{report.checks.length} checks
+                      <a href="#/verify" className="ml-auto text-[12px] underline-offset-2 hover:underline">
+                        Public verifier →
+                      </a>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap items-center gap-2 border-t border-line pt-4">
+                    <button type="button" className="btn btn-primary btn-sm" disabled={busy === record.id} onClick={() => exportBundle(record, true)}>
+                      <Download className="size-3.5" /> Export bundle
                     </button>
-                    <button disabled={busy === record.id} onClick={() => exportBundle(record, false)}>
-                      Verify now
+                    <button type="button" className="btn btn-sm" disabled={busy === record.id} onClick={() => exportBundle(record, false)}>
+                      <ShieldCheck className="size-3.5" /> Verify now
                     </button>
                     {!record.purgedAt && (
-                      <button className="ghost" onClick={() => viewOriginal(record)}>
-                        View original
+                      <button type="button" className="btn btn-ghost btn-sm ml-auto" onClick={() => viewOriginal(record)}>
+                        <Eye className="size-3.5" /> Original
                       </button>
                     )}
                   </div>
-                  {report && (
-                    <div className={`callout ${report.ok ? "" : "warn"}`}>
-                      {report.ok ? "✔ Verified: " : "✘ Not verified: "}
-                      {report.checks.filter((c) => c.ok).length}/{report.checks.length} checks passed.{" "}
-                      <a href="#/verify">Open the public verifier →</a>
-                    </div>
-                  )}
                 </div>
-              </div>
+              </motion.article>
             );
           })}
         </div>

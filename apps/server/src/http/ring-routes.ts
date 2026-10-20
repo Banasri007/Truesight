@@ -51,7 +51,7 @@ export function ringRoutes(ctx: AppContext): Router {
   router.get("/auth/ring/callback", async (req, res) => {
     const { code, state, error, error_description: description } = req.query as Record<string, string | undefined>;
     if (error) {
-      res.status(400).send(page("Ring link cancelled", `<h2>Ring account not linked</h2><p>${escapeHtml(error)}: ${escapeHtml(description ?? "")}</p><p><a href="/">Back to Witness</a></p>`));
+      res.status(400).send(page("Ring link cancelled", `<h2>Ring account not linked</h2><p>${escapeHtml(error)}: ${escapeHtml(description ?? "")}</p><p><a href="/">Back to TrueSight</a></p>`));
       return;
     }
     if (!code || !state) throw new HttpError(400, "Missing code or state");
@@ -77,14 +77,14 @@ export function ringRoutes(ctx: AppContext): Router {
       return;
     }
     if (!isAdmin(ctx, req)) {
-      res.send(page("Sign in to Witness", `<h2>Sign in to Witness first</h2><p>Open <a href="/">Witness</a>, sign in, then return to this link from the Ring app.</p>`));
+      res.send(page("Sign in to TrueSight", `<h2>Sign in to TrueSight first</h2><p>Open <a href="/">TrueSight</a>, sign in, then return to this link from the Ring app.</p>`));
       return;
     }
     res.send(
       page(
-        "Link Ring to Witness",
-        `<h2>Link your Ring account to Witness?</h2>
-         <p>Witness will be able to read snapshots and events from your Ring devices to run the virtual sensors you create, and play sounds on your chime.</p>
+        "Link Ring to TrueSight",
+        `<h2>Link your Ring account to TrueSight?</h2>
+         <p>TrueSight will be able to read snapshots and events from your Ring devices to run the virtual sensors you create, and play sounds on your chime.</p>
          <form method="post" action="/auth/ring/link/confirm">
            <input type="hidden" name="nonce" value="${escapeHtml(nonce!)}"><input type="hidden" name="time" value="${escapeHtml(time!)}">
            <button type="submit">Link account</button>
@@ -139,7 +139,7 @@ async function handleWebhook(ctx: AppContext, hook: RingWebhook, raw: Buffer): P
 
   if (type === "app_integration_removed") {
     await ctx.auth?.forget();
-    await ctx.notifier.send({ level: "info", title: "Ring account disconnected", body: "The Ring account removed Witness. Link it again to resume." });
+    await ctx.notifier.send({ level: "info", title: "Ring account disconnected", body: "The Ring account removed TrueSight. Link it again to resume." });
   } else if (deviceId && CAMERA_ACTIVITY_EVENTS.has(type)) {
     ctx.engine.onCameraActivity(deviceId, type as "motion_detected" | "button_press");
   } else if (deviceId && SENSOR_EVENTS.has(type)) {

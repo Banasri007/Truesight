@@ -138,7 +138,7 @@ export function apiRoutes(ctx: AppContext): Router {
   /** Full ledger for in-browser verification (capped to keep responses small). */
   router.get("/api/ledger/all", async (_req, res) => {
     const head = ctx.ledger.head();
-    if (head.seq > 20_000) throw new HttpError(413, "Ledger too large to verify in the browser; use the witness-verify CLI");
+    if (head.seq > 20_000) throw new HttpError(413, "Ledger too large to verify in the browser; use the truesight-verify CLI");
     res.json(await ctx.ledger.range(0, head.seq));
   });
 
@@ -167,7 +167,7 @@ export function apiRoutes(ctx: AppContext): Router {
       evidence: ctx.evidence,
       mode: ctx.ring.mode,
     });
-    res.set("Content-Disposition", `attachment; filename="witness-${bundle.subject.evidenceId}.json"`).json(bundle);
+    res.set("Content-Disposition", `attachment; filename="truesight-${bundle.subject.evidenceId}.json"`).json(bundle);
   });
 
   return router;

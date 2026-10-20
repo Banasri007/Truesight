@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createPrivateKey, createPublicKey, generateKeyPairSync, sign, verify } from "node:crypto";
-import { decodePngRgba, preservedPixelsDigest } from "witness-verify";
+import { decodePngRgba, preservedPixelsDigest } from "truesight-verify";
 import { decodeRgba, encodePng, mosaic } from "../src/privacy/redact.js";
 import { derToP1363 } from "../src/proof/signer.js";
 import { renderSideYard } from "../src/ring/simulator/scenes.js";
@@ -39,7 +39,7 @@ test("redaction keeps every untouched pixel bit-identical through PNG encoding",
 
 test("KMS DER signatures convert to verifiable P1363", () => {
   const { privateKey } = generateKeyPairSync("ec", { namedCurve: "P-256" });
-  const data = Buffer.from("witness");
+  const data = Buffer.from("truesight");
   for (let i = 0; i < 20; i++) {
     const der = sign("sha256", data, createPrivateKey(privateKey.export({ format: "pem", type: "pkcs8" })));
     const p1363 = derToP1363(der);

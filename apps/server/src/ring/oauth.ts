@@ -162,7 +162,7 @@ export class RingAuth {
     return null;
   }
 
-  /** After the owner has signed in to Witness: match the nonce to a token and claim it. */
+  /** After the owner has signed in to TrueSight: match the nonce to a token and claim it. */
   async confirmOneWayLink(nonce: string, time: string): Promise<void> {
     const problem = this.validateLinkRequest(nonce, time);
     if (problem) throw new RingApiError(400, "Invalid link request", problem);

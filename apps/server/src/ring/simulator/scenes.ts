@@ -46,7 +46,7 @@ function cameraOverlay(deviceName: string, night: boolean, at: Date): string {
     <rect x="16" y="14" width="150" height="34" rx="6" fill="#000" opacity="0.45"/>
     <text x="30" y="38" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#fff">SIM CAM</text>
     <rect x="${W - 476}" y="14" width="460" height="34" rx="6" fill="#000" opacity="0.45"/>
-    <text x="${W - 462}" y="37" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#fff">${escapeXml(deviceName)} · Witness · ${stamp}Z</text>`;
+    <text x="${W - 462}" y="37" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#fff">${escapeXml(deviceName)} · TrueSight · ${stamp}Z</text>`;
 }
 
 function person(x: number, y: number): string {

@@ -1,8 +1,8 @@
-# Witness for Ring
+# TrueSight
 
 **Sensors you teach. Evidence you can trust. Privacy you can see.**
 
-Witness turns any Ring camera into any sensor. You draw a box on a camera frame and ask a question in plain words, like *"Is the side gate latched?"* Claude answers it on every motion event and on a schedule. When the answer turns into an alert state, Witness captures **tamper-evident, privacy-redacted evidence** that anyone can verify, without ever seeing the unredacted original.
+TrueSight turns any Ring camera into any sensor. You draw a box on a camera frame and ask a question in plain words, like *"Is the side gate latched?"* Claude answers it on every motion event and on a schedule. When the answer turns into an alert state, TrueSight captures **tamper-evident, privacy-redacted evidence** that anyone can verify, without ever seeing the unredacted original.
 
 Built for the Amazon Developer Hackathon 2026, **Ring track** (with the AWS Builder and Open Source mini challenges).
 
@@ -12,7 +12,7 @@ Built for the Amazon Developer Hackathon 2026, **Ring track** (with the AWS Buil
 | **Proof** | Every Ring webhook, sensor definition, state change, capture, redaction, export and view of an original goes into an append-only, hash-chained, ES256-signed ledger (local key or **AWS KMS**). Incidents export as a self-contained signed bundle. |
 | **Privacy** | The AI only ever sees the box you drew. Privacy zones and faces (**Amazon Rekognition**, locations only, no recognition) are pixelated first. Frames are discarded after each check unless they become evidence, and each check produces a *privacy receipt*. |
 
-How the three fit together: a redacted image normally can't be trusted as evidence. Witness signs a digest of **every pixel outside the redacted regions** at capture time, so a verifier holding only the redacted PNG can prove nothing else was changed.
+How the three fit together: a redacted image normally can't be trusted as evidence. TrueSight signs a digest of **every pixel outside the redacted regions** at capture time, so a verifier holding only the redacted PNG can prove nothing else was changed.
 
 ---
 
@@ -25,10 +25,12 @@ npm install
 npm run dev
 ```
 
-Open **http://localhost:5173**. The app starts with a simulated Ring account (three cameras, a chime and a gate contact sensor) and an offline "mock" perception provider, so the full pipeline runs immediately.
+Open **http://localhost:5173** for the landing page: an interactive WebGL device and a scroll-driven walkthrough of Teach → Privacy → Proof → Verify. Every demo on it does real work in your browser, including a bundle signed and verified on the spot. Click **Open console** (or go to `/#/sensors`) for the app itself.
 
-1. **Teach a sensor** → pick *Side Yard* → drag a box around the gate → click the **Gate latched?** template → choose *Hallway Chime* / *Witness alert* → tick *Side Gate Contact Sensor* → **Test** → **Create**.
-2. **Simulator** → set Gate to **open**. The simulator sends HMAC-signed `contact_sensor_faulted` and `motion_detected` webhooks, Witness confirms the change twice, the chime "speaks", and evidence is captured.
+The console starts with a simulated Ring account (three cameras, a chime and a gate contact sensor) and an offline "mock" perception provider, so the full pipeline runs immediately.
+
+1. **Teach a sensor** → pick *Side Yard* → drag a box around the gate → click the **Gate latched?** template → choose *Hallway Chime* / *TrueSight alert* → tick *Side Gate Contact Sensor* → **Test** → **Create**.
+2. **Simulator** → set Gate to **open**. The simulator sends HMAC-signed `contact_sensor_faulted` and `motion_detected` webhooks, TrueSight confirms the change twice, the chime "speaks", and evidence is captured.
 3. **Evidence** → **Verify now** (11/11 checks) or **Export bundle**.
 4. **Verify a bundle** → drop the exported JSON. Try **Tamper demo**.
 5. **Ledger** → **Verify entire ledger**. **Privacy** → see the receipts, draw privacy zones.
@@ -92,11 +94,11 @@ Setup commands and the IAM policy are in [docs/AWS_SETUP.md](docs/AWS_SETUP.md).
 
 ## Verifying evidence (anyone, offline)
 
-The verifier is a separate MIT-licensed package, [`witness-verify`](packages/witness-verify), that runs in the browser (WebCrypto) and in Node:
+The verifier is a separate MIT-licensed package, [`truesight-verify`](packages/truesight-verify), that runs in the browser (WebCrypto) and in Node:
 
 ```bash
 npm run build:verify
-node packages/witness-verify/dist/cli.js witness-ev_xxx.json
+node packages/truesight-verify/dist/cli.js truesight-ev_xxx.json
 ```
 
 A bundle passes only if all of these hold:
@@ -132,8 +134,9 @@ Ring (or simulator) ──signed webhook──▶ /webhooks/ring ──▶ ledge
 
 ```
 apps/server            Express API, Ring client and simulator, engine, privacy, proof
-apps/web               React dashboard (Vite)
-packages/witness-verify  Open-source verifier library + CLI (MIT)
+apps/web               Landing page (Three.js / React Three Fiber, GSAP ScrollTrigger, Framer Motion)
+                       + console (React, Tailwind CSS, Recharts, Lucide), built with Vite
+packages/truesight-verify  Open-source verifier library + CLI (MIT)
 docs/                  AWS setup, submission notes
 ```
 

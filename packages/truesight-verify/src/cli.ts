@@ -3,8 +3,8 @@ import { readFile } from "node:fs/promises";
 import { verifyBundle, verifyLedger, asEs256PublicJwk, type LedgerEntry } from "./index.js";
 
 const USAGE = `Usage:
-  witness-verify <bundle.json> [--json]
-  witness-verify --ledger <ledger.jsonl> --key <public-jwk.json> [--json]`;
+  truesight-verify <bundle.json> [--json]
+  truesight-verify --ledger <ledger.jsonl> --key <public-jwk.json> [--json]`;
 
 async function main(argv: string[]): Promise<number> {
   const json = argv.includes("--json");

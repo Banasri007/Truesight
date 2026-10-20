@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { BUNDLE_FORMAT, base64Encode, signBundle, type EvidenceBundle, type LedgerEntry } from "witness-verify";
+import { BUNDLE_FORMAT, base64Encode, signBundle, type EvidenceBundle, type LedgerEntry } from "truesight-verify";
 import type { StateStore } from "../storage/state.js";
 import { APP_NAME, APP_VERSION } from "../version.js";
 import type { EvidenceService } from "./evidence.js";
