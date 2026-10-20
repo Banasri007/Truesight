@@ -100,12 +100,11 @@ export function Dashboard({ status }: { status: Status | null }) {
       )}
 
       {status?.ringMode === "api" && !status.ring.linked && (
-        <div className="mb-8 rounded-xl border border-amber/30 bg-amber/[0.06] px-4 py-3 text-[14px] text-amber">
-          No Ring account is linked yet.{" "}
-          <a href="/auth/ring/start" className="underline">
-            Connect Ring
-          </a>{" "}
-          (partner-initiated), or start the link from the Ring app (one-way linking).
+        <div className="mb-8 rounded-xl border border-amber/30 bg-amber/[0.06] px-5 py-4 text-[14px] leading-relaxed text-amber">
+          <p className="font-medium">No Ring account is linked yet.</p>
+          <p className="mt-1 text-amber/90">
+            On your phone, open the <strong>Ring app → AppStore</strong>, open this app (staging users see the staging version), choose the devices to share and confirm. Ring then sends you to TrueSight's link page: sign in there with your admin token and tap <strong>Link account</strong>.
+          </p>
         </div>
       )}
       <ErrorText error={error} />

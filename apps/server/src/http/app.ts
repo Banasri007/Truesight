@@ -18,6 +18,13 @@ export function createApp(ctx: AppContext): express.Express {
     next();
   });
 
+  // Log Ring-facing traffic (path and status only: query strings carry nonces and codes).
+  app.use(["/auth", "/webhooks"], (req, res, next) => {
+    const started = Date.now();
+    res.on("finish", () => console.log(`[ring-http] ${req.method} ${req.originalUrl.split("?")[0]} -> ${res.statusCode} (${Date.now() - started}ms)`));
+    next();
+  });
+
   app.get("/healthz", (_req, res) => res.json({ ok: true }));
   app.use(ringRoutes(ctx));
   app.use(simulatorRoutes(ctx));
@@ -42,7 +49,10 @@ export function createApp(ctx: AppContext): express.Express {
       return;
     }
     if (error instanceof RingApiError) {
-      res.status(error.status >= 400 && error.status < 600 ? error.status : 502).json({ error: error.message, source: "ring" });
+      // Never surface Ring's 401/403 as our own: the dashboard treats 401 as "your session expired".
+      const status =
+        error.title === "Not linked" ? 409 : error.status === 401 || error.status === 403 ? 502 : error.status >= 400 && error.status < 600 ? error.status : 502;
+      res.status(status).json({ error: error.message, source: "ring", ringStatus: error.status, notLinked: error.title === "Not linked" });
       return;
     }
     const status = (error as { status?: number }).status;

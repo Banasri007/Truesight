@@ -20,8 +20,9 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const text = await response.text();
   const body = text ? safeJson(text) : null;
   if (!response.ok) {
-    if (response.status === 401) onUnauthorized?.();
-    const err = body as { error?: string; issues?: { path: string; message: string }[] } | null;
+    const err = body as { error?: string; source?: string; issues?: { path: string; message: string }[] } | null;
+    // Only our own 401 means "signed out"; upstream Ring auth problems carry source: "ring".
+    if (response.status === 401 && err?.source !== "ring") onUnauthorized?.();
     throw new ApiError(response.status, err?.error ?? `${response.status} ${response.statusText}`, err?.issues);
   }
   return body as T;

@@ -27,6 +27,12 @@ export function isAdmin(ctx: AppContext, req: Request): boolean {
   return !!presented && timingSafeEqual(digest(presented), digest(token));
 }
 
+/** Check a token typed into a form (constant-time). */
+export function tokenMatches(ctx: AppContext, presented: string): boolean {
+  const token = ctx.cfg.ADMIN_TOKEN;
+  return !token || (!!presented && timingSafeEqual(digest(presented), digest(token)));
+}
+
 export function requireAdmin(ctx: AppContext): RequestHandler {
   return (req: Request, res: Response, next: NextFunction) => {
     if (isAdmin(ctx, req)) next();
