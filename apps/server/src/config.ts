@@ -31,7 +31,10 @@ const EnvSchema = z
     SIM_HMAC_KEY: z.string().default("truesight-simulator-signing-key"),
 
     // Perception
-    VISION_PROVIDER: z.enum(["mock", "anthropic", "bedrock"]).default("mock"),
+    VISION_PROVIDER: z.enum(["mock", "groq", "anthropic", "bedrock"]).default("mock"),
+    GROQ_API_KEY: optional,
+    // Groq vision model with image input + strict JSON schema support.
+    GROQ_MODEL: z.string().default("qwen/qwen3.8-27b"),
     ANTHROPIC_MODEL: z.string().default("claude-opus-5-5"),
     BEDROCK_MODEL: z.string().default("anthropic.claude-opus-5-5"),
     VISION_EFFORT: z.enum(["low", "medium", "high"]).default("low"),
@@ -58,6 +61,7 @@ const EnvSchema = z
     for (const key of ["RING_CLIENT_ID", "RING_CLIENT_SECRET", "RING_HMAC_KEY"] as const) {
       need(env.RING_MODE === "api", key, "RING_MODE=api");
     }
+    need(env.VISION_PROVIDER === "groq", "GROQ_API_KEY", "VISION_PROVIDER=groq");
     need(env.SIGNER === "kms", "KMS_KEY_ID", "SIGNER=kms");
     need(env.LEDGER_STORE === "dynamodb", "DYNAMODB_LEDGER_TABLE", "LEDGER_STORE=dynamodb");
     need(env.BLOB_STORE === "s3", "S3_EVIDENCE_BUCKET", "BLOB_STORE=s3");

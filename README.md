@@ -2,7 +2,7 @@
 
 **Sensors you teach. Evidence you can trust. Privacy you can see.**
 
-TrueSight turns any Ring camera into any sensor. You draw a box on a camera frame and ask a question in plain words, like *"Is the side gate latched?"* Claude answers it on every motion event and on a schedule. When the answer turns into an alert state, TrueSight captures **tamper-evident, privacy-redacted evidence** that anyone can verify, without ever seeing the unredacted original.
+TrueSight turns any Ring camera into any sensor. You draw a box on a camera frame and ask a question in plain words, like *"Is the side gate latched?"* A vision model (Groq, Claude, or Claude in Amazon Bedrock) answers it on every motion event and on a schedule. When the answer turns into an alert state, TrueSight captures **tamper-evident, privacy-redacted evidence** that anyone can verify, without ever seeing the unredacted original.
 
 Built for the Amazon Developer Hackathon 2026, **Ring track** (with the AWS Builder and Open Source mini challenges).
 
@@ -35,12 +35,16 @@ The console starts with a simulated Ring account (three cameras, a chime and a g
 4. **Verify a bundle** → drop the exported JSON. Try **Tamper demo**.
 5. **Ledger** → **Verify entire ledger**. **Privacy** → see the receipts, draw privacy zones.
 
-## Use real AI (Claude)
+## Use real AI
 
 Copy `.env.example` to `.env`, then choose one:
 
 ```bash
-# Claude API
+# Groq (default model qwen/qwen3.8-27b: image input + strict JSON schema)
+VISION_PROVIDER=groq
+GROQ_API_KEY=gsk_...
+
+# or the Claude API
 VISION_PROVIDER=anthropic
 ANTHROPIC_API_KEY=sk-ant-...
 
@@ -119,7 +123,7 @@ Ring (or simulator) ──signed webhook──▶ /webhooks/ring ──▶ ledge
         │ snapshot / clip / chime              ▼
         └──────────────── SensorEngine ── preparePerception: privacy zones → crop → faces → AI view
                                │                    │
-                               │                    └─▶ Claude (API or Bedrock) → guardrails → {state, confidence}
+                               │                    └─▶ Groq / Claude / Bedrock → guardrails → {state, confidence}
                                ▼
                      debounce → ledger: sensor.state_changed
                                │ alert state?

@@ -18,7 +18,7 @@ export interface PerceptionImage {
 
 const sha256 = (bytes: Buffer) => createHash("sha256").update(bytes).digest("hex");
 
-/** Claude handles up to ~1568px on the long edge well; upscale tiny crops so detail is legible. */
+/** Vision models handle ~1568px on the long edge well; upscale tiny crops so detail is legible. */
 const MAX_EDGE = 1568;
 const MIN_EDGE = 448;
 

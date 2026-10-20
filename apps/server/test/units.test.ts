@@ -8,6 +8,7 @@ import { renderSideYard } from "../src/ring/simulator/scenes.js";
 import { signWebhookBody, verifyWebhookSignature } from "../src/ring/webhook.js";
 import { applyGuardrails, GENERIC_OBSERVATION } from "../src/vision/guardrails.js";
 import { MockVision } from "../src/vision/mock.js";
+import { parseModelJson } from "../src/vision/groq.js";
 import sharp from "sharp";
 
 test("webhook HMAC: accepts Ring's sha256=<hex> format and rejects tampering", () => {
@@ -68,4 +69,11 @@ test("mock vision maps simulator truth onto the owner's own labels", async () =>
   assert.equal((await ask("Are the bins out at the curb?", ["at curb", "in yard"], { bins: "curb" })).state, "at curb");
   assert.equal((await ask("Is there a package?", ["yes", "no"], { package: false })).state, "no");
   assert.equal((await ask("Is the pool cover on?", ["on", "off"], { gate: "open" })).state, "unknown");
+});
+
+test("groq output parsing tolerates reasoning tags and stray text", () => {
+  assert.deepEqual(parseModelJson('{"state":"open","confidence":0.9,"observation":"Gate swung in."}'), { state: "open", confidence: 0.9, observation: "Gate swung in." });
+  assert.equal(parseModelJson('<think>The panel is angled…</think>\nHere you go: {"state":"latched","confidence":0.8,"observation":"x"}').state, "latched");
+  assert.throws(() => parseModelJson("I cannot tell."));
+  assert.throws(() => parseModelJson('{"state":"open"}'));
 });

@@ -1,17 +1,17 @@
 # Devpost submission notes
 
-These are drafts. Edit them in your own words, and replace every *[bracketed]* part with what actually happened when you tested with real Ring, Claude and AWS.
+These are drafts. Edit them in your own words, and replace every *[bracketed]* part with what actually happened when you tested with real Ring, Groq and AWS.
 
 ## Track and mini challenges
 
 - **Primary track:** Ring
-- **Mini challenges:** AWS Builder (Bedrock, KMS, DynamoDB, S3 Object Lock, Rekognition, SNS) · Open Source (`truesight-verify`)
+- **Mini challenges:** AWS Builder (KMS, DynamoDB, S3 Object Lock, Rekognition, SNS; list only the ones you actually enabled) · Open Source (`truesight-verify`)
 
 ## Project description (draft)
 
 > **TrueSight turns any Ring camera into any sensor, and makes what it sees trustworthy and private.**
 >
-> Draw a box on a camera frame and ask a question in plain words: "Is the side gate latched?", "Are the bins at the curb?", "Is the garage door open?". On every Ring motion event, doorbell press, linked contact-sensor event, or on a schedule, TrueSight fetches a snapshot through the Ring API. It pixelates privacy zones and faces and sends **only the region you drew** to Claude (Claude API or Amazon Bedrock), with structured output limited to your answers. Answers are debounced, and every state change is signed into an append-only, hash-chained ledger (AWS KMS).
+> Draw a box on a camera frame and ask a question in plain words: "Is the side gate latched?", "Are the bins at the curb?", "Is the garage door open?". On every Ring motion event, doorbell press, linked contact-sensor event, or on a schedule, TrueSight fetches a snapshot through the Ring API. It pixelates privacy zones and faces and sends **only the region you drew** to a vision model on Groq, with strict JSON output limited to your answers (Claude and Amazon Bedrock are drop-in alternatives). Answers are debounced, and every state change is signed into an append-only, hash-chained ledger (AWS KMS).
 >
 > When a sensor enters an alert state, TrueSight hashes and signs the original frame before anything touches it. It then redacts faces and privacy zones and signs the redaction as an edit, including a digest of every untouched pixel. A Ring Chime plays an alert and the owner gets a notification. The incident exports as a single signed bundle that anyone can verify in a browser, proving the image is authentic and that the redaction was the only change, without seeing the original.
 >
@@ -25,12 +25,13 @@ See the [README](../README.md#architecture). Key files: [sensors/engine.ts](../a
 
 | Service | How it is used | Code |
 |---|---|---|
-| Amazon Bedrock | Claude answers each sensor question from the cropped AI view (Mantle Messages API, structured JSON output) | `apps/server/src/vision/claude.ts` |
 | AWS KMS | `ECC_NIST_P256` key signs every ledger entry and bundle (DER → P1363) | `apps/server/src/proof/signer.ts` |
 | Amazon DynamoDB | Append-only ledger with a conditional put on `seq` | `apps/server/src/proof/ledger.ts` |
 | Amazon S3 Object Lock | WORM retention for evidence originals and clips | `apps/server/src/storage/blobs.ts` |
 | Amazon Rekognition | `DetectFaces` boxes for pixelation only | `apps/server/src/privacy/faces.ts` |
 | Amazon SNS | Alert SMS / email | `apps/server/src/notify/notifier.ts` |
+
+Optional: Amazon Bedrock (`VISION_PROVIDER=bedrock`, `apps/server/src/vision/claude.ts`) can replace Groq so that inference stays inside your AWS account. Only list it if you actually ran it.
 
 ## Open Source mini challenge
 
@@ -42,7 +43,7 @@ See the [README](../README.md#architecture). Key files: [sensors/engine.ts](../a
 ## Product feedback (outline; fill in with your own experience)
 
 - **Ring Partner API.** Used: webhooks, OAuth / account linking, device discovery, snapshots, clips, event history, chime playback, sensor events. Worked well: *[...]*. Needs work: *[...]*. Onboarding: *[...]*. Would build again: *[...]*.
-- **Amazon Bedrock / Claude.** *[...]*
+- **Groq (vision model).** *[...]*
 - **AWS KMS, DynamoDB, S3, Rekognition, SNS.** *[...]*
 
 ## Friction log (doc issues found while building; verify against your own testing)

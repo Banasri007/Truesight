@@ -57,8 +57,8 @@ export const HOTSPOTS: Record<HotspotId, { index: string; title: string; label: 
     index: "01",
     title: "Perception",
     label: "Lens · perception",
-    body: "Claude answers your question from the box you drew, and only that box. It never sees the full frame. Answers are limited to your own labels, plus \"unknown\".",
-    spec: "Claude · structured output · guardrails",
+    body: "A vision model answers your question from the box you drew, and only that box. It never sees the full frame. Answers are limited to your own labels, plus \"unknown\".",
+    spec: "Vision AI · strict JSON · guardrails",
   },
   motion: {
     index: "02",

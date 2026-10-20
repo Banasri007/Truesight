@@ -14,7 +14,7 @@ const FACE_BOX = { x: FACE.x - 8, y: FACE.y - 8, w: FACE.w + 16, h: FACE.h + 16 
 
 const CAPTION: Record<Mode, string> = {
   camera: "What your camera records: the whole scene, including a visitor and the neighbor's window.",
-  ai: `What Claude receives: ${regionAreaPct}% of the frame. The visitor's face is pixelated, and the neighbor's window is never sent.`,
+  ai: `What the AI receives: ${regionAreaPct}% of the frame. The visitor's face is pixelated, and the neighbor's window is never sent.`,
   evidence: "Evidence copy: the full frame with 2 regions pixelated. Every other pixel is provably unchanged.",
 };
 
@@ -97,7 +97,7 @@ export function PrivacyDemo() {
             <>
               <rect x={REGION.x} y={REGION.y} width={REGION.w} height={REGION.h} fill="none" stroke="#8fd8ff" strokeWidth={1.5} />
               <text x={REGION.x} y={REGION.y - 8} fill="#8fd8ff" fontFamily="Geist Mono, monospace" fontSize="10" letterSpacing="1.5">
-                SENT TO CLAUDE · {regionAreaPct}%
+                SENT TO THE AI · {regionAreaPct}%
               </text>
             </>
           )}

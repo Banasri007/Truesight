@@ -36,7 +36,7 @@ const HOTSPOT_ORDER: HotspotId[] = ["lens", "motion", "light", "core"];
 
 const STACK: [string, string][] = [
   ["Ring Partner API", "Webhooks, snapshots, clips, event history, chimes and sensors."],
-  ["Claude", "Answers each question from the cropped region, as structured JSON limited to your labels."],
+  ["Groq", "Runs the vision model that answers each question from the cropped region, as strict JSON limited to your labels. Claude is a drop-in alternative."],
   ["Amazon Bedrock", "Optional. Keeps inference inside your own AWS account and region."],
   ["AWS KMS", "Signs every ledger entry and bundle with ES256. The private key never leaves KMS."],
   ["Amazon DynamoDB", "Append-only ledger. A sequence number can never be overwritten."],
@@ -200,7 +200,7 @@ export default function Landing() {
                     </RevealItem>
                     <RevealItem>
                       <p className="mt-7 max-w-[30rem] text-[17px] leading-relaxed text-mist">
-                        Teach any Ring camera a question in plain words. TrueSight answers it with Claude and seals every alert as signed, privacy-redacted evidence. Anyone can verify it, without seeing what you chose to hide.
+                        Teach any Ring camera a question in plain words. TrueSight answers it with AI vision and seals every alert as signed, privacy-redacted evidence. Anyone can verify it, without seeing what you chose to hide.
                       </p>
                     </RevealItem>
                     <RevealItem>
@@ -215,7 +215,7 @@ export default function Landing() {
                     </RevealItem>
                     <RevealItem>
                       <div className="mt-12 flex flex-wrap gap-x-6 gap-y-2 font-mono text-[11px] uppercase tracking-[0.16em] text-fog">
-                        <span>Claude perception</span>
+                        <span>AI vision</span>
                         <span className="text-line-strong">/</span>
                         <span>ES256 ledger</span>
                         <span className="text-line-strong">/</span>
@@ -263,7 +263,7 @@ export default function Landing() {
         {/* 01 · Teach */}
         <Chapter register={register(1)} index="01" eyebrow="Teach" side="left"
           title={<>Any camera. <span className="italic text-signal">Any question.</span></>}
-          body="Draw a box around what you care about and ask a question. Choose the answers that count and which of them are alerts. Claude checks on every motion event, every doorbell press, and on a schedule. Two matching answers in a row make it official."
+          body="Draw a box around what you care about and ask a question. Choose the answers that count and which of them are alerts. The AI checks on every motion event, every doorbell press, and on a schedule. Two matching answers in a row make it official."
         >
           <TeachDemo />
         </Chapter>

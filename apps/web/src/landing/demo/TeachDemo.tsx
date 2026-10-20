@@ -82,7 +82,7 @@ export function TeachDemo() {
       <div className="grid gap-4 p-5 sm:grid-cols-[112px_1fr]">
         <div>
           <img src={aiView} alt="What the AI sees" className="aspect-square w-28 rounded-lg border border-line object-cover" draggable={false} />
-          <p className="eyebrow mt-2 !text-[9.5px]">What Claude sees</p>
+          <p className="eyebrow mt-2 !text-[9.5px]">What the AI sees</p>
         </div>
         <div className="min-w-0 space-y-3">
           <p className="text-[15px] leading-snug text-snow">“Is the side gate latched shut, or is it open?”</p>
